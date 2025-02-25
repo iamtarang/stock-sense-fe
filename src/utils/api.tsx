@@ -1,5 +1,6 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
+// Define the base API instance
 export const api = axios.create({
   baseURL: 'https://stocksense-c7qv.onrender.com',
   headers: {
@@ -8,26 +9,23 @@ export const api = axios.create({
   }
 });
 
-
+// Request Interceptor (Attach Token)
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('accessToken');
-    if (token) {
+    if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error)
 );
 
+// Response Interceptor (Handle 401 & Logout)
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
+  (response: AxiosResponse) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -35,7 +33,7 @@ api.interceptors.response.use(
       try {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        window.location.href = '/login'; // Redirect to login page
       } catch (refreshError) {
         return Promise.reject(refreshError);
       }
