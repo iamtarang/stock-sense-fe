@@ -31,38 +31,7 @@ const SignUp = () => {
         setLoading(true);
 
         try {
-            // const response = await fetch("", {
-            //     method: "POST",
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //     },
-            //     body: JSON.stringify({
-            //         username: username,
-            //         email: email,
-            //         password: password,
-            //     }),
-            // });
-
-            // if (!response.ok) {
-            //     const errorData = await response.json();
-            //     throw new Error(errorData.detail || "Registration failed");
-            // }
-
-            // Registration successful, now login
-            // const loginResponse = await fetch("https://stocksense-c7qv.onrender.com/api/users/register/", {
-            //     method: "POST",
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //         "Access-Control-Allow-Origin": "*", // Allows all origins (must be handled by server)
-            //         "Access-Control-Allow-Headers": "*",
-            //     },
-            //     body: JSON.stringify({
-            //         username,
-            //         email,
-            //         password
-            //     }),
-            // });
-
+           
             const loginResponse = await api.post("/api/users/register/", body)
 
             console.log(loginResponse);
@@ -71,12 +40,7 @@ const SignUp = () => {
                 throw new Error("Account created but login failed.");
             }
 
-            // const loginData = await loginResponse;
-
-            // Store tokens
-            // localStorage.setItem("accessToken", loginData.access);
-            // localStorage.setItem("refreshToken", loginData.refresh);
-
+         
             // Redirect to chat page
             navigate("/chat");
         } catch (err: any) {
