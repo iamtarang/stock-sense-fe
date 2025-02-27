@@ -1,19 +1,47 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import loginImg from "../assets/loginImg.png";
 import api from "../utils/api";
 
 const Login = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const from: string = location.state?.from?.pathname || "/chat";
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
-    const [isChecked, setIsChecked] = useState(true);
+    const [rememberMe, setRememberMe] = useState(true);
+
+    // Check for saved credentials on component mount
+    useEffect(() => {
+        const savedUsername = localStorage.getItem("username");
+        const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+        
+        if (savedUsername && savedRememberMe) {
+            setUsername(savedUsername);
+            setRememberMe(true);
+        }
+        
+        // Check if we have a saved token in localStorage
+        const savedToken = localStorage.getItem("access_token");
+        if (savedToken) {
+            // Validate the token or directly navigate to the app
+            // For better security, you should verify the token before navigation
+            sessionStorage.setItem("access_token", savedToken);
+            const savedUserId = localStorage.getItem("user_id");
+            if (savedUserId) {
+                sessionStorage.setItem("user_id", savedUserId);
+                navigate(from, { replace: true });
+            }
+        }
+    }, [navigate, from]);
 
     const handleCheckboxChange = () => {
-        setIsChecked((prev) => !prev);
+        setRememberMe(prev => !prev);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -22,20 +50,30 @@ const Login = () => {
         setLoading(true);
 
         try {
-
             const response = await api.post('/api/users/login/', {
                 username,
                 password
-            })
-
-            console.log(response);
-
-            if (!response) {
+            });
+            
+            if (!response?.data) {
                 throw new Error("Invalid credentials");
+            } else {
+                // If remember me is checked, also store in localStorage
+                if (rememberMe) {
+                    localStorage.setItem("username", username);
+                    localStorage.setItem("rememberMe", "true");
+                    localStorage.setItem("user_id", response?.data?.user_id);
+                    localStorage.setItem("access_token", response?.data?.access);
+                } else {
+                    // Clear any previously saved credentials
+                    localStorage.removeItem("username");
+                    localStorage.removeItem("rememberMe");
+                    localStorage.removeItem("user_id");
+                    localStorage.removeItem("access_token");
+                }
+
+                navigate(from, { replace: true });
             }
-
-
-            navigate("/chat");
         } catch (err) {
             setError("Login failed. Please check your credentials and try again.");
             console.error("Login error:", err);
@@ -87,10 +125,10 @@ const Login = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center cursor-pointer" onClick={handleCheckboxChange}>
                                     <div
-                                        className={`h-5 w-5 flex items-center justify-center border-2 rounded-md transition-all ${isChecked ? "bg-blue-600 border-blue-600" : "border-gray-300"
+                                        className={`h-5 w-5 flex items-center justify-center border-2 rounded-md transition-all ${rememberMe ? "bg-blue-600 border-blue-600" : "border-gray-300"
                                             }`}
                                     >
-                                        {isChecked && (
+                                        {rememberMe && (
                                             <svg
                                                 className="w-4 h-4 text-white"
                                                 fill="none"

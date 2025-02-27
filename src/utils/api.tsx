@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequ
 
 // Define the base API instance
 export const api = axios.create({
-  baseURL: 'https://stocksense-c7qv.onrender.com',
+  baseURL: 'https://stocksense-backend.onrender.com',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
