@@ -79,7 +79,7 @@ const Sidebar = () => {
                     bg-blue-800 text-white h-full flex flex-col`}
             >
                 {/* Header */}
-                <div className="p-4 border-b border-blue-700 flex justify-between items-center">
+                <div className="p-4 border-blue-700 flex justify-between items-center">
                     {(isOpen || !isMobile) && (
                         <h1 className={`text-xl font-bold ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
                             Chat App
@@ -116,7 +116,7 @@ const Sidebar = () => {
                 </div>
 
                 {/* User section */}
-                <div className={`p-4 border-t border-blue-700 flex ${isOpen ? 'justify-between' : 'justify-center'} items-center`}>
+                <div className={`p-4 border-blue-700 flex ${isOpen ? 'justify-between' : 'justify-center'} items-center`}>
                     {isOpen && (
                         <div className="flex items-center">
                             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
@@ -130,13 +130,15 @@ const Sidebar = () => {
                     )}
 
                     {/* Toggle button */}
-                    <button
-                        onClick={toggleSidebar}
-                        className={`${isOpen ? 'ml-2' : 'mx-auto'} bg-blue-700 hover:bg-blue-600 rounded-full p-1`}
-                        aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-                    >
-                        {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                    </button>
+                    {!isMobile && (
+                        <button
+                            onClick={toggleSidebar}
+                            className={`${isOpen ? 'ml-2' : 'mx-auto'} bg-blue-700 hover:bg-blue-600 rounded-full p-1`}
+                            aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+                        >
+                            {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                        </button>
+                    )}
 
                     {/* Mini user icon when collapsed on desktop */}
                     {!isOpen && !isMobile && (

@@ -16,7 +16,6 @@ const Login = () => {
 
     const [rememberMe, setRememberMe] = useState(true);
 
-    // Check for saved credentials on component mount
     useEffect(() => {
         const savedUsername = localStorage.getItem("username");
         const savedRememberMe = localStorage.getItem("rememberMe") === "true";
@@ -25,12 +24,10 @@ const Login = () => {
             setUsername(savedUsername);
             setRememberMe(true);
         }
-        
-        // Check if we have a saved token in localStorage
+    
         const savedToken = localStorage.getItem("access_token");
+        
         if (savedToken) {
-            // Validate the token or directly navigate to the app
-            // For better security, you should verify the token before navigation
             sessionStorage.setItem("access_token", savedToken);
             const savedUserId = localStorage.getItem("user_id");
             if (savedUserId) {
