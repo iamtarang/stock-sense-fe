@@ -153,7 +153,7 @@ const Sidebar = () => {
             {/* Mobile overlay */}
             {isMobile && isOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-30"
+                    className="fixed inset-0 bg-black/50 z-30"
                     onClick={toggleSidebar}
                     aria-hidden="true"
                 />

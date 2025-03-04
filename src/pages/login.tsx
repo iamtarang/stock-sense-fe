@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import loginImg from "../assets/loginImg.png";
 import api from "../utils/api";
+import { useCookies } from "react-cookie";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -16,17 +17,21 @@ const Login = () => {
 
     const [rememberMe, setRememberMe] = useState(true);
 
+    const [cookies, setCookie, removeCookie] = useCookies(['access_token']);
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 14);
+
     useEffect(() => {
         const savedUsername = localStorage.getItem("username");
         const savedRememberMe = localStorage.getItem("rememberMe") === "true";
-        
+
         if (savedUsername && savedRememberMe) {
             setUsername(savedUsername);
             setRememberMe(true);
         }
-    
-        const savedToken = localStorage.getItem("access_token");
-        
+
+        const savedToken = cookies?.access_token;
+
         if (savedToken) {
             sessionStorage.setItem("access_token", savedToken);
             const savedUserId = localStorage.getItem("user_id");
@@ -35,7 +40,7 @@ const Login = () => {
                 navigate(from, { replace: true });
             }
         }
-    }, [navigate, from]);
+    }, [navigate, from, cookies?.access_token]);
 
     const handleCheckboxChange = () => {
         setRememberMe(prev => !prev);
@@ -51,7 +56,7 @@ const Login = () => {
                 username,
                 password
             });
-            
+
             if (!response?.data) {
                 throw new Error("Invalid credentials");
             } else {
@@ -61,12 +66,14 @@ const Login = () => {
                     localStorage.setItem("rememberMe", "true");
                     localStorage.setItem("user_id", response?.data?.user_id);
                     localStorage.setItem("access_token", response?.data?.access);
+                    setCookie('access_token', response?.data?.access, { path: from, expires })
                 } else {
                     // Clear any previously saved credentials
                     localStorage.removeItem("username");
                     localStorage.removeItem("rememberMe");
                     localStorage.removeItem("user_id");
                     localStorage.removeItem("access_token");
+                    removeCookie('access_token', { path: '/' })
                 }
 
                 navigate(from, { replace: true });
