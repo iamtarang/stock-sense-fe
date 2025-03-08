@@ -4,6 +4,7 @@ import loginImg from "../assets/loginImg.png";
 import api from "../utils/api";
 import { useCookies } from "react-cookie";
 
+
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -24,13 +25,14 @@ const Login = () => {
     useEffect(() => {
         const savedUsername = localStorage.getItem("username");
         const savedRememberMe = localStorage.getItem("rememberMe") === "true";
-
+        
         if (savedUsername && savedRememberMe) {
             setUsername(savedUsername);
             setRememberMe(true);
         }
 
         const savedToken = cookies?.access_token;
+
 
         if (savedToken) {
             sessionStorage.setItem("access_token", savedToken);
@@ -41,6 +43,7 @@ const Login = () => {
             }
         }
     }, [navigate, from, cookies?.access_token]);
+
 
     const handleCheckboxChange = () => {
         setRememberMe(prev => !prev);
@@ -67,6 +70,7 @@ const Login = () => {
                     localStorage.setItem("user_id", response?.data?.user_id);
                     localStorage.setItem("access_token", response?.data?.access);
                     setCookie('access_token', response?.data?.access, { path: from, expires })
+
                 } else {
                     // Clear any previously saved credentials
                     localStorage.removeItem("username");

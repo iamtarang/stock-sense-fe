@@ -1,42 +1,72 @@
-import { useState } from "react";
+import { useEffect, useRef, useCallback, memo } from "react";
 import ChatInput from "./components/chat-input";
-import ChatBubble from "./components/user-chat";
+import ChatBubble from "./components/chat-bubble";
+import { useChatService } from "../../hooks/use-chatservice";
 
-const ChatInterface = () => {
+// Memoize the ChatBubble component to prevent unnecessary re-renders
+const MemoizedChatBubble = memo(ChatBubble);
 
-    const [messages, setMessages] = useState([
-        { id: 1, text: 'Hello! How can I help you today?', sender: 'bot', timestamp: '10:00 AM' },
-        { id: 2, text: 'I need help with my account settings.', sender: 'user', timestamp: '10:02 AM' },
-        { id: 3, text: 'Sure, I can help you with that. What specific settings are you trying to modify?', sender: 'bot', timestamp: '10:03 AM' }
-    ]);
+const ChatPage = () => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
+  const { isStreaming, loading, messages, sendMessage, stopStreaming } = useChatService();
 
-    const handleSendMessage = (text: string) => {
-        if (text.trim()) {
-            const newMessage = {
-                id: messages.length + 1,
-                text,
-                sender: 'user',
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages([...messages, newMessage]);
-        }
-    };
+  // Scroll to bottom when messages change or during streaming
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isStreaming]);
 
-    return (
-        <div className="flex flex-col h-full min-w-full">
-            <div className="bg-white border-b p-4">
-                <h2 className="text-lg font-semibold">Support Chat</h2>
-            </div>
+  // Optimized scroll to bottom
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }, []);
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
-                    <ChatBubble key={message.id} message={message} />
-                ))}
-            </div>
+  // Handle sending message
+  const handleSendMessage = useCallback(async (text: string) => {
+    if (text.trim() && !loading && !isStreaming) {
+      await sendMessage(text);
+    }
+  }, [loading, isStreaming, sendMessage]);
 
-            <ChatInput onSendMessage={handleSendMessage} />
+  return (
+    <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
+      {/* Header */}
+      <div className="flex justify-between items-center p-4 border-b">
+        <h1 className="text-xl font-bold">Stock Sense</h1>
+      </div>
+      
+      {/* Chat messages container */}
+      <div 
+        className="flex-1 p-4 overflow-y-auto" 
+        ref={messageListRef}
+      >
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <MemoizedChatBubble
+              key={message.id}
+              message={message}
+              isStreaming={message.isStreaming}
+            />
+          ))}
+          <div ref={messagesEndRef} />
         </div>
-    );
+      </div>
+      
+      {/* Input area */}
+      <div className="p-4 border-t">
+        <ChatInput 
+          onSendMessage={handleSendMessage}
+          onStopStreaming={stopStreaming}
+          isStreaming={isStreaming}
+          disabled={loading}
+        />
+      </div>
+    </div>
+  );
 };
 
-export default ChatInterface;
+export default ChatPage;
