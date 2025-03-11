@@ -31,7 +31,7 @@ const SignUp = () => {
         setLoading(true);
 
         try {
-           
+
             const loginResponse = await api.post("/api/users/register/", body)
 
             console.log(loginResponse);
@@ -40,9 +40,10 @@ const SignUp = () => {
                 throw new Error("Account created but login failed.");
             }
 
-         
+
             // Redirect to chat page
             navigate("/chat");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             setError(err.message || "Registration failed. Please try again.");
             console.error("Registration error:", err);

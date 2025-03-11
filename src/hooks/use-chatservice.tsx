@@ -12,8 +12,7 @@ interface UseChatServiceReturn {
 export const useChatService = (): UseChatServiceReturn => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [loading, setLoading] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [streamingMessageId, setStreamingMessageId] = useState<number | null>(null);
+  // const [streamingMessageId, setStreamingMessageId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: 'Hello! How can I help you today?', sender: 'agent', timestamp: '10:00 AM' },
     { id: 2, text: 'I need help with my account settings.', sender: 'user', timestamp: '10:02 AM' },
@@ -199,7 +198,7 @@ export const useChatService = (): UseChatServiceReturn => {
       
       // Add the agent message and start streaming
       setMessages(prevMessages => [...prevMessages, agentMessage]);
-      setStreamingMessageId(agentMessageId);
+      // setStreamingMessageId(agentMessageId);
       setIsStreaming(true);
       
       // Simulate typing effect and show response character by character
@@ -218,13 +217,13 @@ export const useChatService = (): UseChatServiceReturn => {
           return finalMessages;
         });
         
-        setStreamingMessageId(null);
+        // setStreamingMessageId(null);
         setIsStreaming(false);
       });
     } catch (error) {
       console.error('Error in streaming response:', error);
       setIsStreaming(false);
-      setStreamingMessageId(null);
+      // setStreamingMessageId(null);
     } finally {
       setLoading(false);
     }
