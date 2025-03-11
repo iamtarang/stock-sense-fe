@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { Message } from "../../../utils/types";
+import { Message } from "../../../types/message";
 
 interface ChatBubbleProps {
   message: Message;
@@ -117,23 +117,47 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isStreaming }) => {
             {isUser ? (
               <div className="text-gray-800 leading-relaxed">{message.text}</div>
             ) : (
-              <>
+              <div className="markdown-content">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeRaw]}
                   components={{
-                    h1: ({ node, ...props }) => (
-                      <h1 className="text-xl font-bold mt-2 mb-2" {...props} />
-                    ),
-                    h2: ({ node, ...props }) => (
-                      <h2 className="text-lg font-semibold mt-2 mb-2" {...props} />
-                    ),
-                    h3: ({ node, ...props }) => (
-                      <h3
-                        className="text-base font-semibold mt-2 mb-2"
-                        {...props}
-                      />
-                    ),
+                    h1: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <h1 
+                          className="text-2xl font-bold mt-4 mb-3" 
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </h1>
+                      );
+                    },
+                    h2: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <h2 
+                          className="text-xl font-semibold mt-4 mb-2" 
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </h2>
+                      );
+                    },
+                    h3: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <h3
+                          className="text-lg font-semibold mt-3 mb-2"
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </h3>
+                      );
+                    },
                     p: ({ node, children, ...props }) => {
                       const shouldCaptureRef = isLastElement(children);
                       return (
@@ -146,40 +170,81 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isStreaming }) => {
                         </p>
                       );
                     },
-                    strong: ({ node, ...props }) => (
-                      <strong className="font-bold text-gray-900" {...props} />
-                    ),
-                    a: ({ node, ...props }) => (
-                      <a
-                        className="text-blue-600 underline hover:text-blue-800"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        {...props}
-                      />
-                    ),
-                    ul: ({ node, ...props }) => (
-                      <ul className="list-disc pl-5 mb-4" {...props} />
-                    ),
-                    ol: ({ node, ...props }) => (
-                      <ol className="list-decimal pl-5 mb-4" {...props} />
-                    ),
-                    li: ({ node, children, ...props }) => {
+                    strong: ({ node, children, ...props }) => {
                       const shouldCaptureRef = isLastElement(children);
-                      
                       return (
-                        <li 
-                          className="mb-1" 
+                        <strong 
+                          className="font-bold text-gray-900" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined} 
-                        />
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </strong>
                       );
                     },
-                    blockquote: ({ node, ...props }) => (
-                      <blockquote
-                        className="border-l-4 border-gray-400 pl-3 italic text-gray-600 mb-4"
-                        {...props}
-                      />
-                    ),
+                    a: ({ node, children, href, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <a
+                          className="text-blue-600 underline hover:text-blue-800"
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </a>
+                      );
+                    },
+                    ul: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <ul 
+                          className="list-disc pl-5 mb-4" 
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </ul>
+                      );
+                    },
+                    ol: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <ol 
+                          className="list-decimal pl-5 mb-4" 
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </ol>
+                      );
+                    },
+                    li: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <li 
+                          className="mb-2" 
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </li>
+                      );
+                    },
+                    blockquote: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <blockquote
+                          className="border-l-4 border-gray-400 pl-3 italic text-gray-600 mb-4"
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </blockquote>
+                      );
+                    },
                     code: ({ node, inline, className, children, ...props }: CodeProps) => {
                       const match = /language-(\w+)/.exec(className || '');
                       const shouldCaptureRef = isLastElement(children);
@@ -204,14 +269,26 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isStreaming }) => {
                         </pre>
                       );
                     },
-                    pre: ({ node, ...props }) => (
-                      <pre className="bg-gray-100 rounded p-2 overflow-x-auto mb-4" {...props} />
+                    pre: ({ node, children, ...props }) => {
+                      const shouldCaptureRef = isLastElement(children);
+                      return (
+                        <pre 
+                          className="bg-gray-100 rounded p-2 overflow-x-auto mb-4" 
+                          {...props}
+                          ref={shouldCaptureRef ? captureLastElement : undefined}
+                        >
+                          {children}
+                        </pre>
+                      );
+                    },
+                    hr: ({ node, ...props }) => (
+                      <hr className="my-6 border-t border-gray-300" {...props} />
                     ),
                   }}
                 >
                   {message.text}
                 </ReactMarkdown>
-              </>
+              </div>
             )}
           </div>
         )}
@@ -264,6 +341,62 @@ if (typeof document !== 'undefined') {
       .animate-fade-3 {
         animation: fade-3 1.2s infinite;
         animation-delay: 0.4s;
+      }
+
+      .markdown-content h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+      }
+      
+      .markdown-content h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+      }
+      
+      .markdown-content h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-top: 1.25rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+      }
+      
+      .markdown-content a {
+        color: #2563eb;
+        text-decoration: underline;
+      }
+      
+      .markdown-content a:hover {
+        color: #1e40af;
+      }
+      
+      .markdown-content hr {
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-top-width: 1px;
+        border-color: rgb(209, 213, 219);
+      }
+      
+      .markdown-content ol {
+        list-style-type: decimal;
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      
+      .markdown-content ul {
+        list-style-type: disc;
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      
+      .markdown-content li {
+        margin-bottom: 0.5rem;
       }
     `;
     document.head.appendChild(style);
