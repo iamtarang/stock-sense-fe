@@ -24,7 +24,7 @@ const Login = () => {
 
     useEffect(() => {
         const savedUsername = localStorage.getItem("username");
-        const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+        const savedRememberMe = localStorage.getItem("rememberMe");
         
         if (savedUsername && savedRememberMe) {
             setUsername(savedUsername);
