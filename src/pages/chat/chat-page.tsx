@@ -35,13 +35,12 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
       {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b">
+      <div className="flex justify-center md:justify-between items-center p-4 border-b">
         <h1 className="text-xl font-bold">Stock Sense</h1>
       </div>
-      
       {/* Chat messages container */}
-      <div 
-        className="flex-1 p-4 overflow-y-auto" 
+      <div
+        className="flex-1 p-4 overflow-y-auto"
         ref={messageListRef}
       >
         <div className="space-y-4">
@@ -55,10 +54,10 @@ const ChatPage = () => {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      
+
       {/* Input area */}
       <div className="p-4 border-t">
-        <ChatInput 
+        <ChatInput
           onSendMessage={handleSendMessage}
           onStopStreaming={stopStreaming}
           isStreaming={isStreaming}

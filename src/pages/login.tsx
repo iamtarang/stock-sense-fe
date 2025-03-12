@@ -25,7 +25,7 @@ const Login = () => {
     useEffect(() => {
         const savedUsername = localStorage.getItem("username");
         const savedRememberMe = localStorage.getItem("rememberMe");
-        
+
         if (savedUsername && savedRememberMe) {
             setUsername(savedUsername);
             setRememberMe(true);
@@ -78,6 +78,9 @@ const Login = () => {
                     localStorage.removeItem("user_id");
                     localStorage.removeItem("access_token");
                     removeCookie('access_token', { path: '/' })
+
+                    // set a new cookie
+                    setCookie('access_token', response?.data?.access, { path: from });
                 }
 
                 navigate(from, { replace: true });

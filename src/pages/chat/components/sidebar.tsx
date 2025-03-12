@@ -5,10 +5,10 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    Home,
-    MessageCircle,
-    Settings,
-    BookOpen
+    CalendarDays,
+    CalendarClock,
+    CalendarMinus,
+    CalendarCheck
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -35,24 +35,24 @@ const Sidebar = () => {
 
     const categories = [
         {
-            name: 'General',
-            icon: Home,
-            items: ['Dashboard', 'Analytics', 'Overview']
+            name: 'Today',
+            icon: CalendarCheck,
+            items: []
         },
         {
-            name: 'Messaging',
-            icon: MessageCircle,
-            items: ['Inbox', 'Drafts', 'Sent', 'Archived']
+            name: 'Yesterday',
+            icon: CalendarMinus,
+            items: []
         },
         {
-            name: 'Settings',
-            icon: Settings,
-            items: ['Profile', 'Preferences', 'Security', 'Notifications']
+            name: 'Past Week',
+            icon: CalendarDays,
+            items: []
         },
         {
-            name: 'Resources',
-            icon: BookOpen,
-            items: ['Documentation', 'Tutorials', 'FAQ', 'Support']
+            name: 'Previous',
+            icon: CalendarClock,
+            items: []
         }
     ];
 
@@ -64,7 +64,7 @@ const Sidebar = () => {
             {isMobile && !isOpen && (
                 <button
                     onClick={toggleSidebar}
-                    className="fixed top-4 left-4 z-50 bg-blue-800 text-white p-2 rounded-md shadow-md"
+                    className="fixed top-3 left-4 z-50 bg-blue-800 text-white p-2 rounded-md shadow-md"
                     aria-label="Open menu"
                 >
                     <Menu size={24} />
