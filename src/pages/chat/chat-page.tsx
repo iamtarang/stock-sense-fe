@@ -36,12 +36,13 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
       {/* Header */}
-      <div className="flex justify-center items-center p-4 border-b border-gray-400 md:justify-between">
+      <div className="flex justify-between items-center p-4 border-b border-gray-400">
         <h1 className="text-xl font-bold">Stock Sense</h1>
-        <div className="hidden md:flex items-center">
+        <div className="flex items-center">
           <button className="text-gray-700 hover:text-gray-900 transition-colors" aria-label="Chat">
             <MessageSquarePlus size={24} />
           </button>
+          <span className="hidden ml-1 sm:inline">New Chat</span>
         </div>
       </div>
 

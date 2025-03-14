@@ -148,10 +148,10 @@ const Sidebar = () => {
                                 <p className="text-sm font-medium">Signed in as</p>
                                 <p className="text-sm font-bold">username@example.com</p>
                             </div>
-                            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                            {/* <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
                                 <Settings size={16} className="mr-2" />
                                 <span>Settings</span>
-                            </button>
+                            </button> */}
                             <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600">
                                 <LogOut size={16} className="mr-2" />
                                 <span>Logout</span>
