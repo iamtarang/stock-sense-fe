@@ -1,10 +1,8 @@
 
-import { LucideProps } from "lucide-react";
 import { useState } from "react";
 
 type Category = {
     name: string,
-    icon: string | React.ForwardRefExoticComponent<Omit<LucideProps, "ref">> | React.RefAttributes<SVGSVGElement>,
     items: string[]
 }
 
