@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from 'react';
 
 // Types for TTS
-interface Voice {
-  name: string;
-  lang: string;
-  voiceURI: string;
-  localService: boolean;
-  default: boolean;
-}
+// interface Voice {
+//   name: string;
+//   lang: string;
+//   voiceURI: string;
+//   localService: boolean;
+//   default: boolean;
+// }
 
 interface TTSProps {
   text: string;
