@@ -5,7 +5,6 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    Settings,
     LogOut
 } from "lucide-react";
 
