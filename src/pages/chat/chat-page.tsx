@@ -35,7 +35,7 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
       {/* Header */}
-      <div className="flex justify-center md:justify-between items-center p-4 border-b">
+      <div className="flex justify-between items-center p-4 border-b border-gray-400">
         <h1 className="text-xl font-bold">Stock Sense</h1>
       </div>
       {/* Chat messages container */}
@@ -56,8 +56,8 @@ const ChatPage = () => {
       </div>
 
       {/* Input area */}
-      <div className="p-4 border-t">
-        <ChatInput
+      <div className="p-4 border-t border-gray-400">
+        <ChatInput 
           onSendMessage={handleSendMessage}
           onStopStreaming={stopStreaming}
           isStreaming={isStreaming}

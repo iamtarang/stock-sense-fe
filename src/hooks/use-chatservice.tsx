@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Message } from '../utils/types';
+import { Message } from '../types/message';
 
 interface UseChatServiceReturn {
   isStreaming: boolean;

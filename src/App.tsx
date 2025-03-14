@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Login from "./pages/login";
@@ -19,6 +20,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   return children;
 };
+=======
+import Login from "./pages/login"
+import "./App.css"
+import { Route, Routes } from "react-router-dom"
+import SignUp from "./pages/sign-up"
+import ChatLayout from "./pages/chat/chat-layout"
+import Speech from "./pages/Speech"
+>>>>>>> origin/feature/chat-enhancement
 
 function App() {
   const navigate = useNavigate();
@@ -48,6 +57,7 @@ function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<SignUp />} />
+<<<<<<< HEAD
         <Route
           path="/chat"
           element={
@@ -65,6 +75,10 @@ function App() {
             </ProtectedRoute>
           }
         />
+=======
+        <Route path="/chat" element={<ChatLayout />} />
+        <Route path="/speech" element={<Speech/>} />
+>>>>>>> origin/feature/chat-enhancement
       </Routes>
     </>
   );
