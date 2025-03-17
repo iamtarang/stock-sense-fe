@@ -15,8 +15,7 @@ const Sidebar = () => {
     const [isMobile, setIsMobile] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [cookies, setCookie, removeCookie] = useCookies(['access_token']);
+    const [ , ,removeCookie] = useCookies(['access_token']);
 
     const navigate = useNavigate();
 
