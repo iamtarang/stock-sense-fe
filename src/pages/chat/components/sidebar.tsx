@@ -7,11 +7,18 @@ import {
     ChevronRight,
     LogOut
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [cookies, setCookie, removeCookie] = useCookies(['access_token']);
+
+    const navigate = useNavigate();
 
     // Check if screen size is mobile
     useEffect(() => {
@@ -69,6 +76,19 @@ const Sidebar = () => {
     const toggleSidebar = () => setIsOpen(!isOpen);
     const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
 
+    const logout = () => {
+        // Clear credentials from localStorage
+        localStorage.removeItem("username");
+        localStorage.removeItem("rememberMe");
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("access_token");
+
+        // Remove the access_token cookie
+        removeCookie('access_token', { path: '/' });
+
+        // Redirect the user to the login page or home page
+        navigate("/login", { replace: true });
+    }
 
     return (
         <>
@@ -151,7 +171,7 @@ const Sidebar = () => {
                                 <Settings size={16} className="mr-2" />
                                 <span>Settings</span>
                             </button> */}
-                            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600">
+                            <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600">
                                 <LogOut size={16} className="mr-2" />
                                 <span>Logout</span>
                             </button>
