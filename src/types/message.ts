@@ -4,4 +4,6 @@ export interface Message {
     sender: 'user' | 'agent';
     timestamp: string;
     isStreaming?: boolean;
+    isStreamingChunk?: boolean;
+    lastChunk?: string | null; 
   }

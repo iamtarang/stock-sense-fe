@@ -12,19 +12,34 @@ const ChatPage = () => {
   const messageListRef = useRef<HTMLDivElement>(null);
   const { isStreaming, loading, messages, sendMessage, stopStreaming } = useChatService();
 
-  // Scroll to bottom when messages change or during streaming
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isStreaming]);
-
-  // Optimized scroll to bottom
+  // Improved scroll to bottom that works better with streaming content
   const scrollToBottom = useCallback(() => {
+    // Use requestAnimationFrame to ensure DOM updates have completed
     requestAnimationFrame(() => {
       if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
       }
     });
   }, []);
+
+  // Scroll to bottom when messages change or during streaming
+  useEffect(() => {
+    scrollToBottom();
+    
+    // If streaming is active, set up an interval to keep scrolling to bottom
+    // This ensures smooth scrolling during character-by-character animation
+    let scrollInterval: NodeJS.Timeout | null = null;
+    
+    if (isStreaming) {
+      scrollInterval = setInterval(scrollToBottom, 100);
+    }
+    
+    return () => {
+      if (scrollInterval) {
+        clearInterval(scrollInterval);
+      }
+    };
+  }, [messages, isStreaming, scrollToBottom]);
 
   // Handle sending message
   const handleSendMessage = useCallback(async (text: string) => {

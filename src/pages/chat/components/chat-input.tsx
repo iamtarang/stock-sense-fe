@@ -48,7 +48,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopStreaming, i
       {isStreaming ? (
         <button
           onClick={handleStopClick}
-          className="ml-2 p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+          className="ml-2 p-2 bg-red-500 cursor-pointer text-white rounded-md hover:bg-red-600 transition-colors"
           aria-label="Stop generating"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -71,7 +71,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopStreaming, i
         <button
           onClick={handleVoiceMode}
           disabled={disabled}
-          className="p-2 text-blue-500 disabled:text-gray-400 transition-colors group"
+          className="p-2 text-blue-500 disabled:text-gray-400 transition-colors group cursor-pointer"
           aria-label="Use voice mode"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">

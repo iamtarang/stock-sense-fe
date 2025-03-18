@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -23,43 +23,20 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isStreaming }) => {
   const isUser = message.sender === "user";
   const showTypingIndicator = !isUser && isStreaming;
   const hasContent = message.text && message.text.trim().length > 0;
-  const lastChildRef = useRef<HTMLElement | null>(null);
-
-  // Effect to handle the cursor animation
+  const [showCursor, setShowCursor] = useState(true);
+  
+  // Use React state for cursor blinking instead of DOM manipulation
   useEffect(() => {
-    if (!isUser && showTypingIndicator && lastChildRef.current) {
-      // Clear any existing cursor
-      const existingCursor = document.getElementById('streaming-cursor');
-      if (existingCursor) {
-        existingCursor.remove();
-      }
-
-      // Create cursor element
-      const cursor = document.createElement('span');
-      cursor.id = 'streaming-cursor';
-      cursor.className = 'inline-block w-0.5 h-4 bg-gray-800 align-middle';
-      cursor.style.animation = 'blink 1s infinite';
-      cursor.style.marginLeft = '1px';
-      cursor.style.verticalAlign = 'middle';
-
-      // Append cursor to the last child
-      lastChildRef.current.appendChild(cursor);
-
-      // Return cleanup function
-      return () => {
-        if (cursor && cursor.parentNode) {
-          cursor.parentNode.removeChild(cursor);
-        }
-      };
+    if (!isUser && showTypingIndicator) {
+      const cursorInterval = setInterval(() => {
+        setShowCursor(prev => !prev);
+      }, 500); // Blink every 500ms
+      
+      return () => clearInterval(cursorInterval);
     }
-  }, [isUser, showTypingIndicator, message.text]);
-
-  // Function to capture the last rendered element
-  const captureLastElement = (element: HTMLElement | null) => {
-    if (element) {
-      lastChildRef.current = element;
-    }
-  };
+    
+    return () => {};
+  }, [isUser, showTypingIndicator]);
 
   // Helper function to safely convert ReactNode to string
   const getChildrenAsString = (children: React.ReactNode): string => {
@@ -86,6 +63,16 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isStreaming }) => {
     // Check if message ends with this content
     return messageText.endsWith(content);
   };
+
+  // Typing cursor component
+  const TypingCursor = () => (
+    <span 
+      className={`inline-block w-0.5 h-4 bg-gray-800 align-middle ml-1 ${
+        showCursor ? 'opacity-100' : 'opacity-0'
+      }`}
+      style={{ transition: 'opacity 0.2s ease-in-out', verticalAlign: 'middle' }}
+    />
+  );
 
   if (!isUser && !hasContent && !showTypingIndicator) {
     return null;
@@ -125,67 +112,67 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isStreaming }) => {
                   rehypePlugins={[rehypeRaw]}
                   components={{
                     h1: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <h1 
                           className="text-2xl font-bold mt-4 mb-3" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </h1>
                       );
                     },
                     h2: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <h2 
                           className="text-xl font-semibold mt-4 mb-2" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </h2>
                       );
                     },
                     h3: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <h3
                           className="text-lg font-semibold mt-3 mb-2"
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </h3>
                       );
                     },
                     p: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <p 
                           className="leading-relaxed text-gray-800 mb-4" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </p>
                       );
                     },
                     strong: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <strong 
                           className="font-bold text-gray-900" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </strong>
                       );
                     },
                     a: ({ node, children, href, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <a
                           className="text-blue-600 underline hover:text-blue-800"
@@ -193,93 +180,93 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isStreaming }) => {
                           target="_blank"
                           rel="noopener noreferrer"
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </a>
                       );
                     },
                     ul: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <ul 
                           className="list-disc pl-5 mb-4" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </ul>
                       );
                     },
                     ol: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <ol 
                           className="list-decimal pl-5 mb-4" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </ol>
                       );
                     },
                     li: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <li 
                           className="mb-2" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </li>
                       );
                     },
                     blockquote: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <blockquote
                           className="border-l-4 border-gray-400 pl-3 italic text-gray-600 mb-4"
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </blockquote>
                       );
                     },
                     code: ({ node, inline, className, children, ...props }: CodeProps) => {
                       const match = /language-(\w+)/.exec(className || '');
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       
                       return inline ? (
                         <code
                           className="bg-gray-100 text-sm px-1 py-0.5 rounded"
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </code>
                       ) : (
                         <pre className="bg-gray-100 rounded p-2 overflow-x-auto mb-4">
                           <code
                             className={match ? `language-${match[1]}` : ''}
                             {...props}
-                            ref={shouldCaptureRef ? captureLastElement : undefined}
                           >
                             {children}
+                            {shouldShowCursor && <TypingCursor />}
                           </code>
                         </pre>
                       );
                     },
                     pre: ({ node, children, ...props }) => {
-                      const shouldCaptureRef = isLastElement(children);
+                      const shouldShowCursor = isLastElement(children) && showTypingIndicator;
                       return (
                         <pre 
                           className="bg-gray-100 rounded p-2 overflow-x-auto mb-4" 
                           {...props}
-                          ref={shouldCaptureRef ? captureLastElement : undefined}
                         >
                           {children}
+                          {shouldShowCursor && <TypingCursor />}
                         </pre>
                       );
                     },
