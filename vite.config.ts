@@ -10,6 +10,6 @@ export default defineConfig({
     tailwindcss()
   ],
   server: {
-    open: '/login'
+    open: '/chat'
   }
 })
