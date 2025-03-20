@@ -5,19 +5,66 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    LogOut
+    LogOut,
+    Settings,
+    User,
+    Plus
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
+import { useChatService } from "../../../hooks/use-chatservice";
+
+// Define types for categorized sessions
+type CategoryName = 'Today' | 'Yesterday' | 'Past Week' | 'Previous';
+type CategorizedSessions = {
+  [key in CategoryName]: any[];
+};
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-    const [ , ,removeCookie] = useCookies(['access_token']);
-
+    const [, , removeCookie] = useCookies(['access_token']);
     const navigate = useNavigate();
+    
+    // Get username from localStorage
+    const username = localStorage.getItem("username") || "User";
+    
+    // Get chat service data
+    const { sessions } = useChatService();
+
+    // Group sessions by time period
+    const categorizedSessions: CategorizedSessions = {
+        'Today': [],
+        'Yesterday': [],
+        'Past Week': [],
+        'Previous': []
+    };
+
+    // Function to format dates for grouping
+    const formatDate = (dateString: string): CategoryName => {
+        const date = new Date(dateString);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (date.toDateString() === today.toDateString()) {
+            return 'Today';
+        } else if (date.toDateString() === yesterday.toDateString()) {
+            return 'Yesterday';
+        } else if (date >= new Date(today.setDate(today.getDate() - 7))) {
+            return 'Past Week';
+        } else {
+            return 'Previous';
+        }
+    };
+
+    // Group sessions by category
+    sessions.forEach(session => {
+        const category = formatDate(session.started_at);
+        categorizedSessions[category].push(session);
+    });
 
     // Check if screen size is mobile
     useEffect(() => {
@@ -52,26 +99,6 @@ const Sidebar = () => {
         };
     }, [isUserMenuOpen]);
 
-
-    const categories = [
-        {
-            name: 'Today',
-            items: []
-        },
-        {
-            name: 'Yesterday',
-            items: []
-        },
-        {
-            name: 'Past Week',
-            items: []
-        },
-        {
-            name: 'Previous',
-            items: []
-        }
-    ];
-
     const toggleSidebar = () => setIsOpen(!isOpen);
     const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
 
@@ -85,9 +112,15 @@ const Sidebar = () => {
         // Remove the access_token cookie
         removeCookie('access_token', { path: '/' });
 
-        // Redirect the user to the login page or home page
+        // Redirect the user to the login page
         navigate("/login", { replace: true });
     }
+
+    // Get user initials for avatar
+    const getUserInitials = () => {
+        if (!username || username === "User") return "U";
+        return username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    };
 
     return (
         <>
@@ -109,10 +142,10 @@ const Sidebar = () => {
                     bg-blue-800 text-white h-full flex flex-col`}
             >
                 {/* Header */}
-                <div className="p-4 border-blue-700 flex justify-between items-center">
-                    {/* <h1 className={`text-xl font-bold transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
-                        Chat App
-                    </h1> */}
+                <div className="p-4 border-b border-blue-700 flex justify-between items-center">
+                    <h1 className={`text-xl font-bold transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
+                        StockSense
+                    </h1>
 
                     {isMobile && isOpen && (
                         <button onClick={toggleSidebar} className="text-white" aria-label="Close menu">
@@ -123,19 +156,28 @@ const Sidebar = () => {
 
                 {/* Navigation */}
                 <div className={`flex-1 overflow-y-auto py-4 transition-all duration-300 ease-in-out ${isOpen ? 'px-2' : 'px-0'}`}>
-                    <div className={`transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:block'}`}>
+                    <div className={`transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
                         {isOpen ? (
                             <nav>
-                                {categories.map((category, index) => (
-                                    <NavItems key={index} category={category} />
+                                {(Object.keys(categorizedSessions) as CategoryName[]).map((category) => (
+                                    <NavItems 
+                                        key={category} 
+                                        category={{ 
+                                            name: category, 
+                                            items: categorizedSessions[category] 
+                                        }} 
+                                    />
                                 ))}
                             </nav>
                         ) : (
                             !isMobile && (
                                 <nav className="flex flex-col items-center">
-                                    {categories.map((category, index) => (
+                                    {(Object.keys(categorizedSessions) as CategoryName[]).map((category, index) => (
                                         <div key={index} className="p-2 hover:bg-blue-700 rounded cursor-pointer mb-2">
-                                            <span className="sr-only">{category.name}</span>
+                                            <span className="sr-only">{category}</span>
+                                            {category === 'Today' && categorizedSessions[category].length === 0 && (
+                                                <Plus size={16} />
+                                            )}
                                         </div>
                                     ))}
                                 </nav>
@@ -145,31 +187,34 @@ const Sidebar = () => {
                 </div>
 
                 {/* User section */}
-                <div className={`p-4 border-white flex transition-all duration-300 ease-in-out ${isOpen ? 'justify-between' : 'justify-center'} items-center relative user-dropdown`}>
+                <div className={`p-4 border-t border-blue-700 flex transition-all duration-300 ease-in-out ${isOpen ? 'justify-between' : 'justify-center'} items-center relative user-dropdown`}>
                     <div
                         className={`flex items-center transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden'} cursor-pointer`}
                         onClick={isOpen ? toggleUserMenu : undefined}
                     >
                         <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                            <span className="font-semibold">US</span>
+                            <span className="font-semibold">{getUserInitials()}</span>
                         </div>
                         <div className="ml-3 flex-1">
-                            <p className="font-medium">User Name</p>
-                            {/* <p className="text-sm text-blue-300">Online</p> */}
+                            <p className="font-medium">{username}</p>
                         </div>
                     </div>
 
-                    {/* Upward Dropdown Menu */}
+                    {/* User Dropdown Menu */}
                     {isOpen && isUserMenuOpen && (
                         <div className="absolute bottom-16 left-4 w-56 bg-white rounded-md shadow-lg py-1 text-gray-800 z-50">
                             <div className="px-4 py-2 border-b border-gray-200">
                                 <p className="text-sm font-medium">Signed in as</p>
-                                <p className="text-sm font-bold">username@example.com</p>
+                                <p className="text-sm font-bold">{username}</p>
                             </div>
-                            {/* <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
                                 <Settings size={16} className="mr-2" />
                                 <span>Settings</span>
-                            </button> */}
+                            </button>
+                            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                                <User size={16} className="mr-2" />
+                                <span>Profile</span>
+                            </button>
                             <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600">
                                 <LogOut size={16} className="mr-2" />
                                 <span>Logout</span>

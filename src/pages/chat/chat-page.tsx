@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, memo } from "react";
+import { useEffect, useRef, useCallback, memo, useState } from "react";
 import ChatInput from "./components/chat-input";
 import ChatBubble from "./components/chat-bubble";
 import { useChatService } from "../../hooks/use-chatservice";
@@ -10,11 +10,40 @@ const MemoizedChatBubble = memo(ChatBubble);
 const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
-  const { isStreaming, loading, messages, sendMessage, stopStreaming } = useChatService();
+  const [isBatchLoading, setIsBatchLoading] = useState(false);
+  const { 
+    isStreaming, 
+    loading, 
+    messages, 
+    sendMessage, 
+    stopStreaming, 
+    sessionId, 
+    loadSessionMessages,
+    createNewSession 
+  } = useChatService();
 
-  // Improved scroll to bottom that works better with streaming content
+  useEffect(() => {
+    console.log("ChatPage rendered with currentSessionId:", sessionId);
+  }, [sessionId]);
+
+  useEffect(() => {
+    console.log("🔥 currentSessionId updated in ChatPage:", sessionId);
+    if (sessionId) {
+      setIsBatchLoading(true);
+      loadSessionMessages(sessionId)
+        .finally(() => {
+          setIsBatchLoading(false);
+        });
+    }
+  }, [sessionId, loadSessionMessages]);
+  
+  // Scroll to bottom when messages change or during streaming
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isStreaming]);
+
+  // Optimized scroll to bottom
   const scrollToBottom = useCallback(() => {
-    // Use requestAnimationFrame to ensure DOM updates have completed
     requestAnimationFrame(() => {
       if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -22,31 +51,17 @@ const ChatPage = () => {
     });
   }, []);
 
-  // Scroll to bottom when messages change or during streaming
-  useEffect(() => {
-    scrollToBottom();
-    
-    // If streaming is active, set up an interval to keep scrolling to bottom
-    // This ensures smooth scrolling during character-by-character animation
-    let scrollInterval: NodeJS.Timeout | null = null;
-    
-    if (isStreaming) {
-      scrollInterval = setInterval(scrollToBottom, 100);
-    }
-    
-    return () => {
-      if (scrollInterval) {
-        clearInterval(scrollInterval);
-      }
-    };
-  }, [messages, isStreaming, scrollToBottom]);
-
   // Handle sending message
   const handleSendMessage = useCallback(async (text: string) => {
     if (text.trim() && !loading && !isStreaming) {
       await sendMessage(text);
     }
   }, [loading, isStreaming, sendMessage]);
+
+  // Handle creating new chat
+  const handleNewChat = useCallback(async () => {
+    await createNewSession();
+  }, [createNewSession]);
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
@@ -56,7 +71,11 @@ const ChatPage = () => {
           <h1 className="text-xl font-bold">Stock Sense</h1>
         </div>
         <div>
-          <button className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-2" aria-label="New Chat">
+          <button 
+            className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-2" 
+            aria-label="New Chat"
+            onClick={handleNewChat}
+          >
             <MessageSquarePlus size={24} />
             <span className="hidden sm:inline">New Chat</span>
           </button>
@@ -69,11 +88,13 @@ const ChatPage = () => {
         ref={messageListRef}
       >
         <div className="space-y-4">
-          {messages.map((message) => (
+          {
+          messages.map((message) => (
             <MemoizedChatBubble
               key={message.id}
               message={message}
               isStreaming={message.isStreaming}
+              isBatchLoaded={isBatchLoading}
             />
           ))}
           <div ref={messagesEndRef} />
