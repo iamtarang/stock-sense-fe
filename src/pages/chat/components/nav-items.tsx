@@ -1,6 +1,6 @@
 import React from 'react';
 import { MessageSquare, Plus } from 'lucide-react';
-import { useChatService } from '../../../hooks/use-chatservice'
+import { useChatService } from '../../../hooks/use-chatservice';
 
 interface ChatSession {
   id: number;
@@ -15,12 +15,13 @@ interface NavItemsProps {
     name: string;
     items: any[];
   };
+  chatSessionId?: number | null;
+  onChatClicked?: (id: number) => void;
 }
 
-const NavItems: React.FC<NavItemsProps> = ({ category }) => {
+const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClicked }) => {
   const {
     sessions,
-    loadSessionMessages,
     createNewSession,
     sessionId,
     setSessionId
@@ -32,7 +33,7 @@ const NavItems: React.FC<NavItemsProps> = ({ category }) => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (date.toDateString() === today.toDateString()) {
       return 'Today';
     } else if (date.toDateString() === yesterday.toDateString()) {
@@ -56,16 +57,24 @@ const NavItems: React.FC<NavItemsProps> = ({ category }) => {
   const handleSessionClick = (sessionID: number) => {
     console.log("Clicked session ID:", sessionID);
     setSessionId(sessionID);
-    // loadSessionMessages(sessionId);
-    
+
+    // Call the parent callback to inform Sidebar
+    if (onChatClicked) {
+      onChatClicked(sessionID);
+    }
+
     // Add this line for debugging
     console.log("After setActiveSessionId, current session ID should be:", sessionID);
   };
-  
 
   // Handle creating a new chat
   const handleNewChat = async () => {
-    await createNewSession();
+    const newSessionId = await createNewSession();
+
+    // If a new session was created and we have the ID, notify parent
+    if (newSessionId && onChatClicked) {
+      onChatClicked(newSessionId);
+    }
   };
 
   // Only render the category if it has sessions or is "Today" (for new chat button)
@@ -84,7 +93,7 @@ const NavItems: React.FC<NavItemsProps> = ({ category }) => {
           New Chat
         </button>
       )}
-      
+
       {categorySessions.length > 0 && (
         <>
           <h2 className="text-blue-300 text-xs uppercase font-semibold mb-2 px-2">
@@ -95,11 +104,10 @@ const NavItems: React.FC<NavItemsProps> = ({ category }) => {
               <li key={session.id}>
                 <button
                   onClick={() => handleSessionClick(session.id)}
-                  className={`w-full text-left py-2 px-3 rounded-lg flex items-center ${
-                    sessionId === session.id
+                  className={`w-full text-left py-2 px-3 rounded-lg flex items-center ${chatSessionId === session.id
                       ? 'bg-blue-700 text-white'
                       : 'hover:bg-blue-700/50 text-gray-100'
-                  }`}
+                    }`}
                 >
                   <MessageSquare size={16} className="mr-2 flex-shrink-0" />
                   <span className="truncate">{session.session_title || 'New Chat'}</span>

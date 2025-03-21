@@ -7,36 +7,60 @@ import { MessageSquarePlus } from "lucide-react";
 // Memoize the ChatBubble component to prevent unnecessary re-renders
 const MemoizedChatBubble = memo(ChatBubble);
 
-const ChatPage = () => {
+// Add proper typing for the props
+interface ChatPageProps {
+  sessionId?: number | null;
+}
+
+const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const [isBatchLoading, setIsBatchLoading] = useState(false);
-  const { 
-    isStreaming, 
-    loading, 
-    messages, 
-    sendMessage, 
-    stopStreaming, 
-    sessionId, 
+  const {
+    isStreaming,
+    loading,
+    messages,
+    sendMessage,
+    stopStreaming,
+    sessionId: hookSessionId,
     loadSessionMessages,
-    createNewSession 
+    createNewSession,
+    setSessionId
   } = useChatService();
 
+  // Log both the prop sessionId and the hook sessionId
   useEffect(() => {
-    console.log("ChatPage rendered with currentSessionId:", sessionId);
-  }, [sessionId]);
+    console.log("ChatPage rendered with propSessionId:", propSessionId);
+    console.log("ChatPage rendered with hookSessionId:", hookSessionId);
 
+    // Only sync if propSessionId exists and differs from hookSessionId
+    if (propSessionId && propSessionId !== hookSessionId) {
+      console.log("Syncing sessionId from prop to hook");
+      setSessionId(propSessionId);
+    }
+  }, [propSessionId, hookSessionId, setSessionId]);
+
+  // Modify this useEffect to prevent continuous loading
+  const prevSessionIdRef = useRef<number | null>(hookSessionId);
   useEffect(() => {
-    console.log("🔥 currentSessionId updated in ChatPage:", sessionId);
-    if (sessionId) {
+    // Store the previous hookSessionId in a ref to compare
+
+    console.log("🔥 hookSessionId updated in ChatPage:", hookSessionId);
+
+    // Only load messages if sessionId exists AND has changed
+    if (hookSessionId && hookSessionId !== prevSessionIdRef.current) {
+      console.log("Loading messages for session:", hookSessionId);
       setIsBatchLoading(true);
-      loadSessionMessages(sessionId)
+      loadSessionMessages(hookSessionId)
         .finally(() => {
           setIsBatchLoading(false);
         });
     }
-  }, [sessionId, loadSessionMessages]);
-  
+
+    // Update the ref for next comparison
+    prevSessionIdRef.current = hookSessionId;
+  }, [hookSessionId, loadSessionMessages]);
+
   // Scroll to bottom when messages change or during streaming
   useEffect(() => {
     scrollToBottom();
@@ -71,8 +95,8 @@ const ChatPage = () => {
           <h1 className="text-xl font-bold">Stock Sense</h1>
         </div>
         <div>
-          <button 
-            className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-2" 
+          <button
+            className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-2"
             aria-label="New Chat"
             onClick={handleNewChat}
           >
@@ -89,14 +113,14 @@ const ChatPage = () => {
       >
         <div className="space-y-4">
           {
-          messages.map((message) => (
-            <MemoizedChatBubble
-              key={message.id}
-              message={message}
-              isStreaming={message.isStreaming}
-              isBatchLoaded={isBatchLoading}
-            />
-          ))}
+            messages.map((message) => (
+              <MemoizedChatBubble
+                key={message.id}
+                message={message}
+                isStreaming={message.isStreaming}
+                isBatchLoaded={isBatchLoading}
+              />
+            ))}
           <div ref={messagesEndRef} />
         </div>
       </div>

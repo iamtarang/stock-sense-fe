@@ -17,22 +17,42 @@ import { useChatService } from "../../../hooks/use-chatservice";
 // Define types for categorized sessions
 type CategoryName = 'Today' | 'Yesterday' | 'Past Week' | 'Previous';
 type CategorizedSessions = {
-  [key in CategoryName]: any[];
+    [key in CategoryName]: string[];
 };
 
-const Sidebar = () => {
+interface SidebarProps {
+    onSessionChange: (sessionId: number) => void;
+}
+
+const Sidebar = (props: SidebarProps) => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     const [, , removeCookie] = useCookies(['access_token']);
     const navigate = useNavigate();
-    
+
     // Get username from localStorage
     const username = localStorage.getItem("username") || "User";
-    
+
     // Get chat service data
-    const { sessions } = useChatService();
+    const { sessions, sessionId: currentSessionId, setSessionId } = useChatService();
+
+    // Track the selected chat session ID
+    const [chatSessionId, setChatSessionId] = useState<number | null>(currentSessionId);
+
+    // Update chatSessionId when currentSessionId changes
+    useEffect(() => {
+        setChatSessionId(currentSessionId);
+    }, [currentSessionId]);
+
+    // Handler for when a chat is clicked
+    const handleChatClicked = (id: number) => {
+        console.log("Chat clicked in Sidebar - Session ID:", id);
+        setChatSessionId(id);
+        // Call the onSessionChange prop to notify parent component
+        props.onSessionChange(id);
+    };
 
     // Group sessions by time period
     const categorizedSessions: CategorizedSessions = {
@@ -48,7 +68,7 @@ const Sidebar = () => {
         const today = new Date();
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
-        
+
         if (date.toDateString() === today.toDateString()) {
             return 'Today';
         } else if (date.toDateString() === yesterday.toDateString()) {
@@ -154,18 +174,31 @@ const Sidebar = () => {
                     )}
                 </div>
 
-                {/* Navigation */}
-                <div className={`flex-1 overflow-y-auto py-4 transition-all duration-300 ease-in-out ${isOpen ? 'px-2' : 'px-0'}`}>
+                {/* Navigation - scrollbar hidden but still scrollable */}
+                <div className={`flex-1 py-4 transition-all duration-300 ease-in-out ${isOpen ? 'px-2' : 'px-0'} overflow-y-auto scrollbar-hide`}
+                    style={{
+                        msOverflowStyle: 'none',  /* IE and Edge */
+                        scrollbarWidth: 'none',   /* Firefox */
+                    }}>
+                    {/* Hide scrollbar for Chrome, Safari and Opera */}
+                    <style jsx>{`
+                        .scrollbar-hide::-webkit-scrollbar {
+                            display: none;
+                        }
+                    `}</style>
+
                     <div className={`transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
                         {isOpen ? (
                             <nav>
                                 {(Object.keys(categorizedSessions) as CategoryName[]).map((category) => (
-                                    <NavItems 
-                                        key={category} 
-                                        category={{ 
-                                            name: category, 
-                                            items: categorizedSessions[category] 
-                                        }} 
+                                    <NavItems
+                                        key={category}
+                                        category={{
+                                            name: category,
+                                            items: categorizedSessions[category]
+                                        }}
+                                        chatSessionId={chatSessionId}
+                                        onChatClicked={handleChatClicked}
                                     />
                                 ))}
                             </nav>
