@@ -36,7 +36,10 @@ const Sidebar = (props: SidebarProps) => {
     const username = localStorage.getItem("username") || "User";
 
     // Get chat service data
-    const { sessions, sessionId: currentSessionId, setSessionId } = useChatService();
+    const { sessions, sessionId: currentSessionId, } = useChatService();
+
+    console.log("Sidebar - Sessions:", sessions);
+    
 
     // Track the selected chat session ID
     const [chatSessionId, setChatSessionId] = useState<number | null>(currentSessionId);
@@ -180,12 +183,6 @@ const Sidebar = (props: SidebarProps) => {
                         msOverflowStyle: 'none',  /* IE and Edge */
                         scrollbarWidth: 'none',   /* Firefox */
                     }}>
-                    {/* Hide scrollbar for Chrome, Safari and Opera */}
-                    <style jsx>{`
-                        .scrollbar-hide::-webkit-scrollbar {
-                            display: none;
-                        }
-                    `}</style>
 
                     <div className={`transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
                         {isOpen ? (

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '../types/message';
 import { useCookies } from 'react-cookie';
+import { ChatMessage } from '../utils/types';
 
 // Define types for chat sessions
 interface ChatSession {
@@ -52,16 +53,21 @@ export const useChatService = (): UseChatServiceReturn => {
   const currentMessageIdRef = useRef<number | null>(null);
 
   // Helper function to get the access token from cookies
-  const getAccessToken = (): string | null => {
+  const getAccessToken = useCallback((): string | null => {
     return cookies.access_token || null;
-  };
+  }, [cookies.access_token]);
   
-  // Animation constants - adjust these for speed
-  const TYPING_SPEED = 60; // Characters per second - higher is faster
-  const COMMA_PAUSE = 100; // ms
-  const PERIOD_PAUSE = 200; // ms
+  // Animation constants - adjust these for desired speed
+  const TYPING_SPEED = 30; // Characters per second (reduced for more visible typing effect)
+  const COMMA_PAUSE = 150; // ms
+  const PERIOD_PAUSE = 300; // ms
 
-  // Function to animate typing using requestAnimationFrame
+  // Add this helper function near your other constants
+  const getRandomDelay = (baseDelay: number) => {
+    return baseDelay * (0.8 + Math.random() * 0.4); // Varies between 80% and 120% of base delay
+  };
+
+  // Replace the existing animateTyping function with this improved version
   const animateTyping = useCallback((timestamp: number) => {
     // Skip if not streaming or no message to update
     if (!isStreaming || shouldStopStreamingRef.current || !currentMessageIdRef.current) {
@@ -71,12 +77,9 @@ export const useChatService = (): UseChatServiceReturn => {
     const fullText = fullResponseRef.current;
     const currentText = displayedTextRef.current;
     
-    // Always schedule the next frame first to ensure continuous checking
-    // for new content even if we don't add a character this frame
-    animationFrameIdRef.current = requestAnimationFrame(animateTyping);
-    
-    // If we've displayed all text, just return and wait for more
+    // If we've displayed all text, keep checking for new content
     if (currentText.length >= fullText.length) {
+      animationFrameIdRef.current = requestAnimationFrame(animateTyping);
       return;
     }
     
@@ -87,7 +90,7 @@ export const useChatService = (): UseChatServiceReturn => {
     const nextChar = fullText[currentText.length];
     
     // Determine delay based on character
-    let delay = 1000 / TYPING_SPEED; // Base delay between characters
+    let delay = getRandomDelay(1000 / TYPING_SPEED); // Base delay with random variation
     
     // Adjust delay based on punctuation
     if (['.', '!', '?'].includes(nextChar)) {
@@ -101,10 +104,11 @@ export const useChatService = (): UseChatServiceReturn => {
       // Update the last animation time
       lastAnimationTimeRef.current = timestamp;
       
-      // Add just one character to our text reference
-      displayedTextRef.current = fullText.substring(0, currentText.length + 1);
+      // Add just one character
+      const newText = fullText.substring(0, currentText.length + 1);
+      displayedTextRef.current = newText;
       
-      // Update the message in state so the UI re-renders
+      // Update the message in state
       setMessages(prevMessages => {
         const index = prevMessages.findIndex(m => m.id === currentMessageIdRef.current);
         if (index === -1) return prevMessages;
@@ -112,13 +116,16 @@ export const useChatService = (): UseChatServiceReturn => {
         const updatedMessages = [...prevMessages];
         updatedMessages[index] = {
           ...updatedMessages[index],
-          text: displayedTextRef.current,
-          isStreaming: true // Keep streaming flag true while animating
+          text: newText,
+          isStreaming: true
         };
         
         return updatedMessages;
       });
     }
+    
+    // Schedule next frame
+    animationFrameIdRef.current = requestAnimationFrame(animateTyping);
   }, [isStreaming]);
 
   // Function to start typing animation
@@ -152,20 +159,18 @@ export const useChatService = (): UseChatServiceReturn => {
     // Update the message to remove streaming status
     if (currentMessageIdRef.current) {
       setMessages(prevMessages => {
-        const messages = [...prevMessages];
-        const lastMessage = messages.find(m => m.id === currentMessageIdRef.current);
+        const index = prevMessages.findIndex(m => m.id === currentMessageIdRef.current);
+        if (index === -1) return prevMessages;
         
-        if (lastMessage) {
-          const index = messages.indexOf(lastMessage);
-          messages[index] = {
-            ...lastMessage,
-            isStreaming: false,
-            // Ensure the final text is complete
-            text: fullResponseRef.current
-          };
-        }
+        const updatedMessages = [...prevMessages];
+        updatedMessages[index] = {
+          ...updatedMessages[index],
+          isStreaming: false,
+          // Ensure the final text is complete
+          text: fullResponseRef.current
+        };
         
-        return messages;
+        return updatedMessages;
       });
     }
     
@@ -248,7 +253,7 @@ export const useChatService = (): UseChatServiceReturn => {
     } catch (error) {
       console.error('Error loading sessions:', error);
     }
-  }, [cookies.access_token]);
+  }, [getAccessToken]);
 
   // Create a new chat session
   const createNewSession = useCallback(async (): Promise<number> => {
@@ -292,7 +297,7 @@ export const useChatService = (): UseChatServiceReturn => {
       console.error('Error creating new session:', error);
       return -1;
     }
-  }, [cookies.access_token]);
+  }, [getAccessToken]);
 
   // Load messages for a specific session
   const loadSessionMessages = useCallback(async (newSessionId: number): Promise<void> => {
@@ -320,7 +325,7 @@ export const useChatService = (): UseChatServiceReturn => {
       const data = await response.json();
       
       // Convert API message format to our app's Message format
-      const formattedMessages: Message[] = data.map((msg: any) => ({
+      const formattedMessages: Message[] = data.map((msg: ChatMessage) => ({
         id: msg.id,
         text: msg.message,
         sender: msg.sender === 'user' ? 'user' : 'agent',
@@ -339,7 +344,7 @@ export const useChatService = (): UseChatServiceReturn => {
     } finally {
       setLoading(false);
     }
-  }, [cookies.access_token]);
+  }, [getAccessToken]);
 
   // Update session title based on first message
   const updateSessionTitle = useCallback(async (sessionId: number, title: string): Promise<void> => {
@@ -374,7 +379,7 @@ export const useChatService = (): UseChatServiceReturn => {
     } catch (error) {
       console.error('Error updating session title:', error);
     }
-  }, [cookies.access_token]);
+  }, [getAccessToken]);
 
   const sendMessage = useCallback(async (text: string): Promise<void> => {
     if (!text.trim() || loading || isStreaming) return;
@@ -464,7 +469,7 @@ export const useChatService = (): UseChatServiceReturn => {
       let partialChunk = '';
       let userMetaData: UserMetaData | null = null;
       let agentMessageId: number | null = tempAgentMessageId; // Default to temp ID if no metadata received
-      let isFirstMessageInSession = !sessionId;
+      const isFirstMessageInSession = !sessionId;
       
       while (true) {
         // If stopping was requested, break the loop
@@ -524,7 +529,7 @@ export const useChatService = (): UseChatServiceReturn => {
                       const updatedMessages = [...prevMessages];
                       updatedMessages[index] = {
                         ...updatedMessages[index],
-                        id: agentMessageId
+                        id: agentMessageId !== null ? agentMessageId : tempAgentMessageId
                       };
                       
                       return updatedMessages;
@@ -537,7 +542,7 @@ export const useChatService = (): UseChatServiceReturn => {
                   
                 case 'chat_streaming':
                   // Skip processing if stop was requested
-                  if (shouldStopStreamingRef.current) {
+                  { if (shouldStopStreamingRef.current) {
                     continue;
                   }
                   
@@ -564,7 +569,7 @@ export const useChatService = (): UseChatServiceReturn => {
                   // No need to manually update the message here
                   // The animation loop will handle displaying characters gradually
                   
-                  break;
+                  break; }
                   
                 default:
                   // Handle other event types if needed
@@ -575,7 +580,7 @@ export const useChatService = (): UseChatServiceReturn => {
             }
           }
         } catch (error) {
-          if (error.name === 'AbortError') {
+          if (error instanceof Error && error.name === 'AbortError') {
             console.log('Fetch aborted');
             break;
           } else {
@@ -613,7 +618,7 @@ export const useChatService = (): UseChatServiceReturn => {
       }, 500);
       
     } catch (error) {
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         console.log('Fetch aborted');
       } else {
         console.error('Error in streaming response:', error);
@@ -639,7 +644,7 @@ export const useChatService = (): UseChatServiceReturn => {
     } finally {
       setLoading(false);
     }
-  }, [loading, isStreaming, sessionId, cookies.access_token, cleanupStreamingResources, startTypingAnimation, createNewSession, loadSessions, updateSessionTitle]);
+  }, [loading, isStreaming, getAccessToken, sessionId, createNewSession, startTypingAnimation, updateSessionTitle, loadSessions, cleanupStreamingResources]);
 
   // Load sessions on initial mount
   useEffect(() => {

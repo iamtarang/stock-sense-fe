@@ -30,12 +30,8 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
 
   // Log both the prop sessionId and the hook sessionId
   useEffect(() => {
-    console.log("ChatPage rendered with propSessionId:", propSessionId);
-    console.log("ChatPage rendered with hookSessionId:", hookSessionId);
-
     // Only sync if propSessionId exists and differs from hookSessionId
     if (propSessionId && propSessionId !== hookSessionId) {
-      console.log("Syncing sessionId from prop to hook");
       setSessionId(propSessionId);
     }
   }, [propSessionId, hookSessionId, setSessionId]);
@@ -44,12 +40,8 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
   const prevSessionIdRef = useRef<number | null>(hookSessionId);
   useEffect(() => {
     // Store the previous hookSessionId in a ref to compare
-
-    console.log("🔥 hookSessionId updated in ChatPage:", hookSessionId);
-
     // Only load messages if sessionId exists AND has changed
     if (hookSessionId && hookSessionId !== prevSessionIdRef.current) {
-      console.log("Loading messages for session:", hookSessionId);
       setIsBatchLoading(true);
       loadSessionMessages(hookSessionId)
         .finally(() => {
@@ -61,11 +53,6 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
     prevSessionIdRef.current = hookSessionId;
   }, [hookSessionId, loadSessionMessages]);
 
-  // Scroll to bottom when messages change or during streaming
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isStreaming]);
-
   // Optimized scroll to bottom
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -74,6 +61,12 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
       }
     });
   }, []);
+
+  // Scroll to bottom when messages change or during streaming
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isStreaming, scrollToBottom]);
+
 
   // Handle sending message
   const handleSendMessage = useCallback(async (text: string) => {

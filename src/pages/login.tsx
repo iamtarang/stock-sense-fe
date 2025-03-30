@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import loginImg from "../assets/loginImg.png";
-import api from "../utils/api";
+import { loginApi } from "../utils/api";
 import { useCookies } from "react-cookie";
 
 
@@ -55,7 +55,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await api.post('/api/users/login/', {
+            const response = await loginApi.post('/api/users/login/', {
                 username,
                 password
             });
