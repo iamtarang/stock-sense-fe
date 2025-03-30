@@ -17,6 +17,7 @@ import { useChatService } from "../../../hooks/use-chatservice";
 // Define types for categorized sessions
 type CategoryName = 'Today' | 'Yesterday' | 'Past Week' | 'Previous';
 type CategorizedSessions = {
+    // [key in CategoryName]: string[];
     [key in CategoryName]: string[];
 };
 
@@ -38,8 +39,8 @@ const Sidebar = (props: SidebarProps) => {
     // Get chat service data
     const { sessions, sessionId: currentSessionId, } = useChatService();
 
-    console.log("Sidebar - Sessions:", sessions);
-    
+    // console.log("Sidebar - Sessions:", sessions);
+
 
     // Track the selected chat session ID
     const [chatSessionId, setChatSessionId] = useState<number | null>(currentSessionId);
@@ -86,7 +87,9 @@ const Sidebar = (props: SidebarProps) => {
     // Group sessions by category
     sessions.forEach(session => {
         const category = formatDate(session.started_at);
-        categorizedSessions[category].push(session);
+        console.log(category, typeof category);
+
+        categorizedSessions[category].push(session.started_at);
     });
 
     // Check if screen size is mobile

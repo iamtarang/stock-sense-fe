@@ -13,7 +13,7 @@ interface ChatSession {
 interface NavItemsProps {
   category: {
     name: string;
-    items: any[];
+    items: unknown[];
   };
   chatSessionId?: number | null;
   onChatClicked?: (id: number) => void;
@@ -23,7 +23,6 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
   const {
     sessions,
     createNewSession,
-    sessionId,
     setSessionId
   } = useChatService();
 

@@ -4,7 +4,7 @@ import Sidebar from "./components/sidebar";
 
 const ChatLayout = () => {
     // State to track the current session ID
-    const [currentSessionId, setCurrentSessionId] = useState<number>(null);
+    const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
 
     // Handler to receive session ID from Sidebar
     const handleSessionChange = (sessionId: number) => {
