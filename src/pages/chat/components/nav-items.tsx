@@ -120,4 +120,4 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
   );
 };
 
-export default NavItems;
+export default React.memo(NavItems);

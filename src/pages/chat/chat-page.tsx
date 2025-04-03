@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback, memo, useState } from "react";
 import ChatInput from "./components/chat-input";
 import ChatBubble from "./components/chat-bubble";
 import { useChatService } from "../../hooks/use-chatservice";
-import { MessageSquarePlus } from "lucide-react";
 
 // Memoize the ChatBubble component to prevent unnecessary re-renders
 const MemoizedChatBubble = memo(ChatBubble);
@@ -24,7 +23,6 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
     stopStreaming,
     sessionId: hookSessionId,
     loadSessionMessages,
-    createNewSession,
     setSessionId
   } = useChatService();
 
@@ -75,27 +73,12 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
     }
   }, [loading, isStreaming, sendMessage]);
 
-  // Handle creating new chat
-  const handleNewChat = useCallback(async () => {
-    await createNewSession();
-  }, [createNewSession]);
-
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
       {/* Header */}
       <div className="flex items-center p-4 border-b border-gray-400">
         <div className="flex-1 flex md:justify-start justify-center">
           <h1 className="text-xl font-bold">Stock Sense</h1>
-        </div>
-        <div>
-          <button
-            className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-2"
-            aria-label="New Chat"
-            onClick={handleNewChat}
-          >
-            <MessageSquarePlus size={24} />
-            <span className="hidden sm:inline">New Chat</span>
-          </button>
         </div>
       </div>
 

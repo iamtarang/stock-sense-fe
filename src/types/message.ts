@@ -1,7 +1,7 @@
 export interface Message {
   id: number;
   text: string;
-  sender: 'user' | 'agent';
+  sender: 'user' | 'tutor';
   timestamp: string;
   isStreaming?: boolean;
   isStreamingChunk?: boolean;
