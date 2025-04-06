@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import loginImg from "../assets/loginImg.png";
-import { loginApi } from "../utils/api";
+import api, { loginApi } from "../utils/api";
 import { useCookies } from "react-cookie";
 
 
@@ -82,7 +82,9 @@ const Login = () => {
                     // set a new cookie
                     setCookie('access_token', response?.data?.access, { path: from });
                 }
-
+                const user_details = await api.get(`/api/users/${response?.data?.user_id}/`);
+                console.log("user_details", user_details);
+                localStorage.setItem("user_email", user_details?.data?.email);
                 navigate(from, { replace: true });
             }
         } catch (err) {

@@ -6,8 +6,6 @@ import {
     ChevronLeft,
     ChevronRight,
     LogOut,
-    Settings,
-    User,
     Plus
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -35,12 +33,10 @@ const Sidebar = (props: SidebarProps) => {
 
     // Get username from localStorage
     const username = localStorage.getItem("username") || "User";
+    const user_email = localStorage.getItem("user_email") || "user@stocksense.io";
 
     // Get chat service data
     const { sessions, sessionId: currentSessionId, } = useChatService();
-
-    // console.log("Sidebar - Sessions:", sessions);
-
 
     // Track the selected chat session ID
     const [chatSessionId, setChatSessionId] = useState<number | null>(currentSessionId);
@@ -238,16 +234,8 @@ const Sidebar = (props: SidebarProps) => {
                         <div className="absolute bottom-16 left-4 w-56 bg-white rounded-md shadow-lg py-1 text-gray-800 z-50">
                             <div className="px-4 py-2 border-b border-gray-200">
                                 <p className="text-sm font-medium">Signed in as</p>
-                                <p className="text-sm font-bold">{username}</p>
+                                <p className="text-sm font-bold">{user_email}</p>
                             </div>
-                            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                                <Settings size={16} className="mr-2" />
-                                <span>Settings</span>
-                            </button>
-                            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                                <User size={16} className="mr-2" />
-                                <span>Profile</span>
-                            </button>
                             <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600">
                                 <LogOut size={16} className="mr-2" />
                                 <span>Logout</span>
