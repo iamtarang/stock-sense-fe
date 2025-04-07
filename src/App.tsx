@@ -3,13 +3,12 @@ import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Login from "./pages/login";
 import SignUp from "./pages/sign-up";
 import ChatLayout from "./pages/chat/chat-layout";
-import Speech from "./pages/speech"
+import Speech from "./pages/speech";
 import "./App.css";
 import { useCookies } from "react-cookie";
 
 // Protected route component that checks authentication
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-
   const [cookies] = useCookies(['access_token']);
   const savedToken = cookies?.access_token;
 
@@ -20,6 +19,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   return children;
 };
+
 function App() {
   const navigate = useNavigate();
   const [cookies] = useCookies(['access_token']);
@@ -33,6 +33,11 @@ function App() {
     if (!isAuthenticated && !["/login", "/sign-up"].includes(currentPath)) {
       navigate("/login");
     }
+
+    // If user is authenticated and on login or root page, redirect to chat
+    if (isAuthenticated && (currentPath === "/login" || currentPath === "/")) {
+      navigate("/chat", { replace: true });
+    }
   }, [navigate, cookies.access_token]);
 
   return (
@@ -41,9 +46,7 @@ function App() {
         <Route
           path="/"
           element={
-            localStorage.getItem("rememberMe") === "true" ?
-              <Navigate to="/chat" replace /> :
-              <Login />
+            cookies.access_token ? <Navigate to="/chat" replace /> : <Login />
           }
         />
         <Route path="/login" element={<Login />} />
@@ -61,8 +64,7 @@ function App() {
             <Speech />
           </ProtectedRoute>
         } />
-
-      </Routes >
+      </Routes>
     </>
   );
 }

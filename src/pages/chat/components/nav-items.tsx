@@ -305,9 +305,9 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
         await loadSessions();
 
         // If the deleted session was the active one, create a new chat
-        if (sessionId === chatSessionId) {
-          handleNewChat();
-        }
+        // if (sessionId === chatSessionId) {
+        //   handleNewChat();
+        // }
       } else {
         console.error("Failed to delete chat:", response);
       }

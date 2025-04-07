@@ -1,28 +1,27 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import loginImg from "../assets/loginImg.png";
 import api, { loginApi } from "../utils/api";
 import { useCookies } from "react-cookie";
 
-
 const Login = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-
-    const from: string = location.state?.from?.pathname || "/chat";
-
+    const from: string = "/chat";
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-
     const [rememberMe, setRememberMe] = useState(true);
+    const [ , setCookie, removeCookie] = useCookies(['access_token']);
 
-    const [cookies, setCookie, removeCookie] = useCookies(['access_token']);
+    // Remove the useEffect that handles redirection - let App.tsx handle this
+
+    // Set expiration for cookies
     const expires = new Date();
     expires.setDate(expires.getDate() + 14);
 
-    useEffect(() => {
+    // Load saved username if remember me was checked
+    useState(() => {
         const savedUsername = localStorage.getItem("username");
         const savedRememberMe = localStorage.getItem("rememberMe");
 
@@ -30,20 +29,7 @@ const Login = () => {
             setUsername(savedUsername);
             setRememberMe(true);
         }
-
-        const savedToken = cookies?.access_token;
-
-
-        if (savedToken) {
-            sessionStorage.setItem("access_token", savedToken);
-            const savedUserId = localStorage.getItem("user_id");
-            if (savedUserId) {
-                sessionStorage.setItem("user_id", savedUserId);
-                navigate(from, { replace: true });
-            }
-        }
-    }, [navigate, from, cookies?.access_token]);
-
+    });
 
     const handleCheckboxChange = () => {
         setRememberMe(prev => !prev);
@@ -69,8 +55,7 @@ const Login = () => {
                     localStorage.setItem("rememberMe", "true");
                     localStorage.setItem("user_id", response?.data?.user_id);
                     localStorage.setItem("access_token", response?.data?.access);
-                    setCookie('access_token', response?.data?.access, { path: from, expires })
-
+                    setCookie('access_token', response?.data?.access, { path: '/', expires })
                 } else {
                     // Clear any previously saved credentials
                     localStorage.removeItem("username");
@@ -80,10 +65,10 @@ const Login = () => {
                     removeCookie('access_token', { path: '/' })
 
                     // set a new cookie
-                    setCookie('access_token', response?.data?.access, { path: from });
+                    setCookie('access_token', response?.data?.access, { path: '/' });
                 }
+
                 const user_details = await api.get(`/api/users/${response?.data?.user_id}/`);
-                console.log("user_details", user_details);
                 localStorage.setItem("user_email", user_details?.data?.email);
                 navigate(from, { replace: true });
             }
@@ -96,6 +81,7 @@ const Login = () => {
     };
 
     return (
+        // JSX remains the same
         <>
             <div className="min-h-screen flex flex-col md:flex-row">
                 <div className="w-full md:w-2/5 bg-blue-600 p-8 flex flex-col justify-center items-center">
@@ -175,8 +161,7 @@ const Login = () => {
                         </form>
                     </div>
                 </div>
-            </div>
-        </>
+            </div>     </>
     );
 };
 

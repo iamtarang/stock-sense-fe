@@ -1,11 +1,11 @@
-- add delete functionality.
 - add new chat name functionality.
-- add time wise sorting, so that latest chats should show first and oldest last.
 - solve the new chat issue when user writes query without clicking on new chat button and the chat disappears.
-- resolve login issue:
-1. when remember me on, it should go direct to the chat page when website will be opened again.
-2. when logged out, and the url /chat will be searched, it should not redirect to the chat page.
 
 (done)
 - add the code that I gave you.
 - add email to localstorage and show it in "sign in as" box in the sidebar. 
+- add delete functionality.
+- add time wise sorting, so that latest chats should show first and oldest last.
+- resolve login issue:
+1. when remember me on, it should go direct to the chat page when website will be opened again.
+2. when logged out, and the url /chat will be searched, it should not redirect to the chat page.
