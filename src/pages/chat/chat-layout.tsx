@@ -7,7 +7,7 @@ const ChatLayout = () => {
     const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
 
     // Handler to receive session ID from Sidebar
-    const handleSessionChange = (sessionId: number) => {
+    const handleSessionChange = (sessionId: number | null) => {
         console.log("Session ID received in Layout:", sessionId);
         setCurrentSessionId(sessionId);
     };
