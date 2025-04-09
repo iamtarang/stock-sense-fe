@@ -20,7 +20,7 @@ type CategorizedSessions = {
 };
 
 interface SidebarProps {
-    onSessionChange: (sessionId: number) => void;
+    onSessionChange: (sessionId: number | null) => void;
 }
 
 const Sidebar = (props: SidebarProps) => {
@@ -47,7 +47,7 @@ const Sidebar = (props: SidebarProps) => {
     }, [currentSessionId]);
 
     // Handler for when a chat is clicked
-    const handleChatClicked = (id: number) => {
+    const handleChatClicked = (id: number | null) => {
         console.log("Chat clicked in Sidebar - Session ID:", id);
         setChatSessionId(id);
         // Call the onSessionChange prop to notify parent component
@@ -83,7 +83,7 @@ const Sidebar = (props: SidebarProps) => {
     // Group sessions by category
     sessions.forEach(session => {
         const category = formatDate(session.started_at);
-        console.log(category, typeof category);
+        // console.log(category, typeof category);
 
         categorizedSessions[category].push(session.started_at);
     });
@@ -130,9 +130,11 @@ const Sidebar = (props: SidebarProps) => {
         localStorage.removeItem("rememberMe");
         localStorage.removeItem("user_id");
         localStorage.removeItem("access_token");
+        localStorage.removeItem("user_email");
 
         // Remove the access_token cookie
         removeCookie('access_token', { path: '/' });
+        removeCookie('access_token', { path: '/chat' });
 
         // Redirect the user to the login page
         navigate("/login", { replace: true });

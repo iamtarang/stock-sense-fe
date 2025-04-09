@@ -19,6 +19,9 @@ const Login = () => {
     // Set expiration for cookies
     const expires = new Date();
     expires.setDate(expires.getDate() + 14);
+    
+    const expires1D = new Date();
+    expires1D.setDate(expires1D.getDate() + 1);
 
     // Load saved username if remember me was checked
     useState(() => {
@@ -65,7 +68,12 @@ const Login = () => {
                     removeCookie('access_token', { path: '/' })
 
                     // set a new cookie
-                    setCookie('access_token', response?.data?.access, { path: '/' });
+                    setCookie('access_token', response?.data?.access, { path: '/', expires: expires1D });
+                    
+                    localStorage.setItem("username", username);
+                    localStorage.setItem("rememberMe", "false");
+                    localStorage.setItem("user_id", response?.data?.user_id);
+                    localStorage.setItem("access_token", response?.data?.access);
                 }
 
                 const user_details = await api.get(`/api/users/${response?.data?.user_id}/`);
