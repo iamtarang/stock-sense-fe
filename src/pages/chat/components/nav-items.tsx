@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, MoreVertical, Plus, Trash2, Share2 } from 'lucide-react';
+import { MessageSquare, MoreVertical, Plus, Trash2, Share2, X } from 'lucide-react';
 import { useChatService } from '../../../hooks/use-chatservice';
 import api from '../../../utils/api';
 
@@ -20,6 +20,54 @@ interface NavItemsProps {
   onChatClicked?: (id: number | null) => void;
 }
 
+// Add a confirmation modal component
+const DeleteConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  sessionTitle
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  sessionTitle: string;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-white">Delete Chat</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <p className="text-gray-300 mb-4">
+          Are you sure you want to delete "{sessionTitle || 'New Chat'}"? This action cannot be undone.
+        </p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClicked }) => {
   const { sessions, createNewSession, setSessionId, loadSessions } = useChatService();
 
@@ -27,6 +75,11 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Add state for delete confirmation modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<number | null>(null);
+  const [sessionTitleToDelete, setSessionTitleToDelete] = useState('');
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -88,22 +141,33 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
     }
   };
 
-  const handleDeleteChat = async (
+  // Modified to show confirmation modal
+  const handleDeleteChat = (
     e: React.MouseEvent<HTMLButtonElement>,
-    sessionId: number
+    session: ChatSession
   ) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent the session click event from firing
 
+    // Set the session to delete and show the modal
+    setSessionToDelete(session.id);
+    setSessionTitleToDelete(session.session_title);
+    setShowDeleteModal(true);
+    // Close the dropdown menu
+    setOpenMenu(null);
+  };
+
+  // New function to perform the actual deletion
+  const confirmDeleteChat = async () => {
+    if (!sessionToDelete) return;
+
     try {
-      const response = await api.delete(`/api/users/chat-sessions/${sessionId}/`);
+      const response = await api.delete(`/api/users/chat-sessions/${sessionToDelete}/`);
       if (response.status === 200 || response.status === 204) {
         console.log("Chat deleted successfully");
-        // Close the menu
-        setOpenMenu(null);
 
         // If the deleted session was the active one, set sessionId to null
-        if (sessionId === chatSessionId) {
+        if (sessionToDelete === chatSessionId) {
           setSessionId(null);
           if (onChatClicked) {
             onChatClicked(null); // Pass null to indicate no active chat
@@ -117,6 +181,11 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
       }
     } catch (error) {
       console.error("Error deleting chat:", error);
+    } finally {
+      // Close the modal and reset state
+      setShowDeleteModal(false);
+      setSessionToDelete(null);
+      setSessionTitleToDelete('');
     }
   };
 
@@ -136,6 +205,14 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
 
   return (
     <div className="mb-4">
+      {/* Delete confirmation modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteChat}
+        sessionTitle={sessionTitleToDelete}
+      />
+
       {category.name === 'Today' && (
         <button
           onClick={handleNewChat}
@@ -194,7 +271,7 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
                       Share Chat
                     </button>
                     <button
-                      onClick={(e) => handleDeleteChat(e, session.id)}
+                      onClick={(e) => handleDeleteChat(e, session)}
                       className="w-full flex items-center px-4 py-2 hover:bg-red-100 hover:text-red-600 cursor-pointer"
                     >
                       <Trash2 size={16} className="mr-2 text-red-500" />
@@ -212,8 +289,6 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
 };
 
 export default React.memo(NavItems);
-
-// import React, { useState, useRef, useEffect } from 'react';
 // import { MessageSquare, MoreVertical, Plus, Trash2, Share2 } from 'lucide-react';
 // import { useChatService } from '../../../hooks/use-chatservice';
 // import api from '../../../utils/api';
