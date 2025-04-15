@@ -25,6 +25,7 @@ interface UseChatServiceReturn {
     createNewSession: () => Promise<number>;
     loadSessionMessages: (sessionId: number | null) => Promise<void>;
     updateSessionTitle: (sessionId: number, title: string) => Promise<void>;
+    clearMessages: () => void; // Add this new function
 }
 
 interface UserMetaData {
@@ -154,6 +155,12 @@ export const useChatService = (): UseChatServiceReturn => {
             return -1;
         }
     }, [getAccessToken]);
+
+    const clearMessages = useCallback(() => {
+        setMessages([]);
+        setSessionId(null);
+        pendingSessionUpdate.current = null;
+    }, []);
 
     // Load messages for a specific session
     // const loadSessionMessages = useCallback(async (newSessionId: number | null): Promise<void> => {
@@ -508,6 +515,7 @@ export const useChatService = (): UseChatServiceReturn => {
         loadSessions,
         createNewSession,
         loadSessionMessages,
-        updateSessionTitle
+        updateSessionTitle,
+        clearMessages // Add this new function
     };
 };

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageSquare, MoreVertical, Plus, Trash2, Share2, X } from 'lucide-react';
 import { useChatService } from '../../../hooks/use-chatservice';
 import api from '../../../utils/api';
@@ -69,7 +69,7 @@ const DeleteConfirmationModal = ({
 };
 
 const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClicked }) => {
-  const { sessions, setSessionId, loadSessions, loadSessionMessages } = useChatService();
+  const { sessions, setSessionId, loadSessions, clearMessages } = useChatService();
 
   const [hoveredSession, setHoveredSession] = useState<number | null>(null);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
@@ -140,10 +140,12 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
     }
   };
 
-  const handleNewChat = async () => {
-    setSessionId(null);
-    loadSessionMessages(null); // Clear messages when creating a new chat
-  };
+  const handleNewChat = useCallback(() => {
+    clearMessages();
+    if (onChatClicked) {
+      onChatClicked(null); // Pass null to indicate no active chat
+    }
+  }, [clearMessages, onChatClicked]);
 
   // Modified to show confirmation modal
   const handleDeleteChat = (
