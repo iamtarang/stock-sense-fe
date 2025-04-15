@@ -14,15 +14,15 @@ interface ChatBubbleProps {
 interface CodeProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   node?: any;
-  inline?: boolean; 
+  inline?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ 
-  message, 
-  isStreaming, 
-  isBatchLoaded = false 
+const ChatBubble: React.FC<ChatBubbleProps> = ({
+  message,
+  isStreaming,
+  isBatchLoaded = false
 }) => {
   const isUser = message.sender === "user";
   // Only show typing indicator if explicitly streaming and not batch loaded
@@ -31,7 +31,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   const [showCursor, setShowCursor] = useState(true);
   const [isVisible, setIsVisible] = useState(isBatchLoaded);
   const bubbleRef = useRef<HTMLDivElement>(null);
-  
+
   // Handle animation for batch loaded messages
   useEffect(() => {
     if (isBatchLoaded) {
@@ -39,25 +39,25 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       const timeout = setTimeout(() => {
         setIsVisible(true);
       }, 10); // Very small delay for batch loaded messages
-      
+
       return () => clearTimeout(timeout);
     } else {
       // For regular messages, show immediately
       setIsVisible(true);
     }
   }, [isBatchLoaded]);
-  
+
   // Use React state for cursor blinking instead of DOM manipulation
   useEffect(() => {
     if (!isUser && showTypingIndicator) {
       const cursorInterval = setInterval(() => {
         setShowCursor(prev => !prev);
       }, 500); // Blink every 500ms
-      
+
       return () => clearInterval(cursorInterval);
     }
-    
-    return () => {};
+
+    return () => { };
   }, [isUser, showTypingIndicator]);
 
   // Helper function to safely convert ReactNode to string
@@ -77,27 +77,26 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   // Enhanced helper function to check if this element contains the end of the text
   const isLastElement = (elementContent: React.ReactNode): boolean => {
     if (!showTypingIndicator) return false;
-    
+
     const content = getChildrenAsString(elementContent).trim();
     const messageText = message.text.trim();
-    
+
     // If content is empty, it can't be the last element
     if (!content) return false;
-    
+
     // For very short messages or the beginning of messages, show cursor
     if (messageText.length < 20) return true;
-    
+
     // Check if message ends with this content or close to the end
-    return messageText.endsWith(content) || 
-           (content.length > 5 && messageText.indexOf(content) > messageText.length - content.length - 10);
+    return messageText.endsWith(content) ||
+      (content.length > 5 && messageText.indexOf(content) > messageText.length - content.length - 10);
   };
 
   // Typing cursor component
   const TypingCursor = () => (
-    <span 
-      className={`inline-block w-0.5 h-4 bg-gray-800 align-middle ml-1 ${
-        showCursor ? 'opacity-100' : 'opacity-0'
-      }`}
+    <span
+      className={`inline-block w-0.5 h-4 bg-gray-800 align-middle ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'
+        }`}
       style={{ transition: 'opacity 0.2s ease-in-out', verticalAlign: 'middle' }}
       aria-hidden="true"
     />
@@ -111,11 +110,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   return (
     <div
       ref={bubbleRef}
-      className={`flex ${
-        isUser ? "justify-end" : "justify-start"
-      } transition-all duration-300 ease-in-out mb-4 ${
-        isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-2'
-      }`}
+      className={`flex ${isUser ? "justify-end" : "justify-start"
+        } transition-all duration-300 ease-in-out mb-4 ${isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-2'
+        }`}
       data-message-id={message.id}
     >
       {!isUser && (
@@ -123,11 +120,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       )}
 
       <div
-        className={`max-w-[85%] rounded-lg p-3 break-words overflow-hidden whitespace-pre-wrap ${
-          isUser 
-          ? 'bg-gray-200 text-gray-900 rounded-tr-none'
-          : 'bg-white border border-gray-300 rounded-tl-none'
-        }`}
+        className={`max-w-[85%] rounded-lg p-3 break-words overflow-hidden whitespace-pre-wrap ${isUser
+            ? 'bg-gray-200 text-gray-900 rounded-tr-none'
+            : 'bg-white border border-gray-300 rounded-tl-none'
+          }`}
       >
         {showTypingIndicator && !hasContent ? (
           <div className="flex space-x-1 py-1">
@@ -148,8 +144,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     h1: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <h1 
-                          className="text-2xl font-bold mt-4 mb-3" 
+                        <h1
+                          className="text-2xl font-bold mt-4 mb-3"
                           {...props}
                         >
                           {children}
@@ -160,8 +156,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     h2: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <h2 
-                          className="text-xl font-semibold mt-4 mb-2" 
+                        <h2
+                          className="text-xl font-semibold mt-4 mb-2"
                           {...props}
                         >
                           {children}
@@ -184,8 +180,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     p: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <p 
-                          className="leading-relaxed text-gray-800 mb-4" 
+                        <p
+                          className="leading-relaxed text-gray-800 mb-4"
                           {...props}
                         >
                           {children}
@@ -196,8 +192,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     strong: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <strong 
-                          className="font-bold text-gray-900" 
+                        <strong
+                          className="font-bold text-gray-900"
                           {...props}
                         >
                           {children}
@@ -223,8 +219,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     ul: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <ul 
-                          className="list-disc pl-5 mb-4" 
+                        <ul
+                          className="list-disc pl-5 mb-4"
                           {...props}
                         >
                           {children}
@@ -235,8 +231,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     ol: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <ol 
-                          className="list-decimal pl-5 mb-4" 
+                        <ol
+                          className="list-decimal pl-5 mb-4"
                           {...props}
                         >
                           {children}
@@ -247,8 +243,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     li: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <li 
-                          className="mb-2" 
+                        <li
+                          className="mb-2"
                           {...props}
                         >
                           {children}
@@ -271,7 +267,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     code: ({ node, inline, className, children, ...props }: CodeProps) => {
                       const match = /language-(\w+)/.exec(className || '');
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
-                      
+
                       return inline ? (
                         <code
                           className="bg-gray-100 text-sm px-1 py-0.5 rounded"
@@ -295,8 +291,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     pre: ({ node, children, ...props }) => {
                       const shouldShowCursor = !isBatchLoaded && isLastElement(children);
                       return (
-                        <pre 
-                          className="bg-gray-100 rounded p-2 overflow-x-auto mb-4" 
+                        <pre
+                          className="bg-gray-100 rounded p-2 overflow-x-auto mb-4"
                           {...props}
                         >
                           {children}

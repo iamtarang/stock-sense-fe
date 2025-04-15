@@ -69,7 +69,7 @@ const DeleteConfirmationModal = ({
 };
 
 const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClicked }) => {
-  const { sessions, createNewSession, setSessionId, loadSessions } = useChatService();
+  const { sessions, setSessionId, loadSessions, loadSessionMessages } = useChatService();
 
   const [hoveredSession, setHoveredSession] = useState<number | null>(null);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
@@ -135,11 +135,9 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
   };
 
   const handleNewChat = async () => {
-    const newSessionId = await createNewSession();
-    if (newSessionId && onChatClicked) {
-      onChatClicked(newSessionId);
-    }
-  };
+    setSessionId(null);
+    loadSessionMessages(null); // Clear messages when creating a new chat
+};
 
   // Modified to show confirmation modal
   const handleDeleteChat = (
@@ -289,7 +287,7 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
 };
 
 export default React.memo(NavItems);
-// import { MessageSquare, MoreVertical, Plus, Trash2, Share2 } from 'lucide-react';
+
 // import { useChatService } from '../../../hooks/use-chatservice';
 // import api from '../../../utils/api';
 

@@ -15,6 +15,8 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const [isBatchLoading, setIsBatchLoading] = useState(false);
+  const lastLoadedSessionId = useRef<number | null>(null);
+
   const {
     isStreaming,
     loading,
@@ -23,33 +25,37 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
     stopStreaming,
     sessionId: hookSessionId,
     loadSessionMessages,
-    setSessionId
+    setSessionId,
+    loadSessions
   } = useChatService();
 
-  // Log both the prop sessionId and the hook sessionId
+  // Handle session ID from props (if provided)
   useEffect(() => {
-    // Only sync if propSessionId exists and differs from hookSessionId
     if (propSessionId && propSessionId !== hookSessionId) {
+      console.log(`Setting session ID from props: ${propSessionId}`);
       setSessionId(propSessionId);
     }
   }, [propSessionId, hookSessionId, setSessionId]);
 
-  // Modify this useEffect to prevent continuous loading
-  const prevSessionIdRef = useRef<number | null>(hookSessionId);
+  // Handle session title updates and session list loading
   useEffect(() => {
-    // Store the previous hookSessionId in a ref to compare
-    // Only load messages if sessionId exists AND has changed
-    if (hookSessionId && hookSessionId !== prevSessionIdRef.current) {
-      setIsBatchLoading(true);
-      loadSessionMessages(hookSessionId)
-        .finally(() => {
-          setIsBatchLoading(false);
-        });
-    }
+    if (hookSessionId && hookSessionId !== lastLoadedSessionId.current) {
+      console.log(`Loading data for session: ${hookSessionId}`);
 
-    // Update the ref for next comparison
-    prevSessionIdRef.current = hookSessionId;
-  }, [hookSessionId, loadSessionMessages]);
+      // Load the session messages (if needed)
+      if (!isBatchLoading) {
+        setIsBatchLoading(true);
+        loadSessionMessages(hookSessionId)
+          .finally(() => {
+            setIsBatchLoading(false);
+            lastLoadedSessionId.current = hookSessionId;
+          });
+      }
+
+      // Load the session list (separate from message loading)
+      loadSessions();
+    }
+  }, [hookSessionId, loadSessionMessages, loadSessions, isBatchLoading]);
 
   // Optimized scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -65,13 +71,20 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
     scrollToBottom();
   }, [messages, isStreaming, scrollToBottom]);
 
-
   // Handle sending message
   const handleSendMessage = useCallback(async (text: string) => {
     if (text.trim() && !loading && !isStreaming) {
+      // When sending a message, don't worry about the session ID
+      // It will be handled by the stream processing
       await sendMessage(text);
+
+      // Store the message text for potential title update later
+      if (hookSessionId) {
+        // You can update the title here if needed using the first message
+        // updateSessionTitle(hookSessionId, text);
+      }
     }
-  }, [loading, isStreaming, sendMessage]);
+  }, [loading, isStreaming, sendMessage, hookSessionId]);
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
@@ -88,15 +101,14 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
         ref={messageListRef}
       >
         <div className="space-y-4">
-          {
-            messages.map((message) => (
-              <MemoizedChatBubble
-                key={message.id}
-                message={message}
-                isStreaming={message.isStreaming}
-                isBatchLoaded={isBatchLoading}
-              />
-            ))}
+          {messages.map((message) => (
+            <MemoizedChatBubble
+              key={message.id}
+              message={message}
+              isStreaming={message.isStreaming}
+              isBatchLoaded={isBatchLoading}
+            />
+          ))}
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -107,7 +119,7 @@ const ChatPage = ({ sessionId: propSessionId }: ChatPageProps) => {
           onSendMessage={handleSendMessage}
           onStopStreaming={stopStreaming}
           isStreaming={isStreaming}
-          disabled={loading}
+          disabled={loading || isBatchLoading}
         />
       </div>
     </div>
