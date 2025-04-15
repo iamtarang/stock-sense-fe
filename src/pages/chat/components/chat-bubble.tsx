@@ -19,13 +19,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   const hasContent = message.text && message.text.trim().length > 0;
   const [isVisible, setIsVisible] = useState(false);
   const bubbleRef = useRef<HTMLDivElement>(null);
-
+  
   // Simple appearance animation
   useEffect(() => {
     const timeout = setTimeout(() => {
       setIsVisible(true);
     }, isBatchLoaded ? 10 : 0);
-
+    
     return () => clearTimeout(timeout);
   }, [isBatchLoaded]);
 
@@ -59,10 +59,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
       <div
         className={`max-w-[85%] rounded-lg p-4 break-words overflow-hidden whitespace-pre-wrap shadow-sm
-          ${isUser
-            ? 'bg-blue-50 text-gray-900 rounded-tr-none border border-blue-100'
-            : 'bg-white border border-gray-100 rounded-tl-none'
-          }`}
+          ${isUser 
+          ? 'bg-blue-50 text-gray-900 rounded-tr-none border border-blue-100'
+          : 'bg-white border border-gray-100 rounded-tl-none'
+        }`}
       >
         {isStreaming && !hasContent ? (
           <LoadingIndicator />
