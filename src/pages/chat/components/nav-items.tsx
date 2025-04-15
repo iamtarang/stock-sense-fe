@@ -122,7 +122,13 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
   };
 
   const getSessionsByCategory = (categoryName: string): ChatSession[] => {
-    return sessions.filter(session => formatDate(session.started_at) === categoryName);
+    // Filter sessions by category name
+    const filteredSessions = sessions.filter(session => formatDate(session.started_at) === categoryName);
+
+    // Sort sessions by started_at date (newest first)
+    return filteredSessions.sort((a, b) =>
+      new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
+    );
   };
 
   const categorySessions = getSessionsByCategory(category.name);
@@ -137,7 +143,7 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId, onChatClic
   const handleNewChat = async () => {
     setSessionId(null);
     loadSessionMessages(null); // Clear messages when creating a new chat
-};
+  };
 
   // Modified to show confirmation modal
   const handleDeleteChat = (
