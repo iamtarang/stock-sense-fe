@@ -162,47 +162,6 @@ export const useChatService = (): UseChatServiceReturn => {
         pendingSessionUpdate.current = null;
     }, []);
 
-    // Load messages for a specific session
-    // const loadSessionMessages = useCallback(async (newSessionId: number | null): Promise<void> => {
-    //     console.log("Loading messages for session:", newSessionId);
-    //     const accessToken = getAccessToken();
-    //     if (!accessToken) {
-    //         console.error('No access token found. User may need to log in.');
-    //         return;
-    //     }
-
-    //     try {
-    //         setLoading(true);
-    //         const response = await fetch(`https://stocksense-backend.onrender.com/api/users/chat-messages/?session=${newSessionId}`, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Authorization': `Bearer ${accessToken}`,
-    //                 'Content-Type': 'application/json'
-    //             }
-    //         });
-
-    //         if (!response.ok) throw new Error(`Failed to load messages: ${response.status}`);
-
-    //         const data = await response.json();
-    //         const formattedMessages: Message[] = data.map((msg: ChatMessage) => ({
-    //             id: msg.id,
-    //             text: msg.message,
-    //             sender: msg.sender === 'user' ? 'user' : 'agent',
-    //             timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    //         }));
-
-    //         console.log(formattedMessages);
-    //         setMessages([...formattedMessages]);
-
-    //         // Don't update sessionId here - this was creating the loop
-    //         console.log("Messages loaded for session:", newSessionId);
-    //     } catch (error) {
-    //         console.error('Error loading session messages:', error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }, [getAccessToken]);
-
     // Load messages for a specific session     
     const loadSessionMessages = useCallback(async (newSessionId: number | null): Promise<void> => {
         console.log("Loading messages for session:", newSessionId);
