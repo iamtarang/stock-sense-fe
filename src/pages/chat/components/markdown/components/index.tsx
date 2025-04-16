@@ -1,6 +1,12 @@
 import React from 'react';
 import type { Components } from 'react-markdown';
-import type { CodeProps } from 'react-markdown/lib/ast-to-react';
+
+
+interface CodeProps {
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}
 
 // Table component
 const TableWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -101,4 +107,4 @@ export const MarkdownComponents: Components = {
       {children}
     </blockquote>
   ),
-}; 
+};
