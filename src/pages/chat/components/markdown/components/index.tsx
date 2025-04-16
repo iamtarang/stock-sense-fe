@@ -1,12 +1,58 @@
 import React from 'react';
 import type { Components } from 'react-markdown';
-import { TableRenderer } from './TableRenderer';
-import { CodeRenderer } from './CodeRenderer';
+import type { CodeProps } from 'react-markdown/lib/ast-to-react';
+
+// Table component
+const TableWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="table-wrapper">
+    <table className="min-w-full divide-y divide-gray-200">
+      {children}
+    </table>
+  </div>
+);
+
+// Code component
+const CodeBlock = React.forwardRef<HTMLElement, CodeProps>(({ 
+  inline = false,
+  className,
+  children 
+}, ref) => {
+  const isLanguageSpecified = className?.startsWith('language-');
+  
+  if (inline) {
+    return (
+      <code ref={ref} className="px-1.5 py-0.5 bg-gray-100 rounded text-sm font-mono text-gray-800">
+        {children}
+      </code>
+    );
+  }
+
+  return (
+    <pre className={`${isLanguageSpecified ? className : ''} bg-gray-100 rounded-lg p-4 mb-4 overflow-x-auto`}>
+      <code ref={ref} className="text-sm font-mono">
+        {children}
+      </code>
+    </pre>
+  );
+});
+
+CodeBlock.displayName = 'CodeBlock';
 
 export const MarkdownComponents: Components = {
   // Table components
-  table: ({ children }) => (
-    <TableRenderer>{children}</TableRenderer>
+  table: ({ children }) => <TableWrapper>{children}</TableWrapper>,
+  thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
+  tbody: ({ children }) => <tbody className="bg-white divide-y divide-gray-200">{children}</tbody>,
+  tr: ({ children }) => <tr className="hover:bg-gray-50">{children}</tr>,
+  th: ({ children }) => (
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="px-6 py-4 whitespace-pre-wrap text-sm text-gray-500">
+      {children}
+    </td>
   ),
   
   // Text formatting
@@ -35,9 +81,7 @@ export const MarkdownComponents: Components = {
   ),
 
   // Code
-  code: ({ node, inline, children, ...props }) => (
-    <CodeRenderer inline={!!inline} {...props}>{children}</CodeRenderer>
-  ),
+  code: CodeBlock,
 
   // Links
   a: ({ children, href }) => (
