@@ -107,5 +107,5 @@ if (typeof document !== 'undefined' && !document.getElementById('chat-bubble-ani
   document.head.appendChild(style);
 }
 
-export default React.memo(ChatBubble);
+export default ChatBubble;
  

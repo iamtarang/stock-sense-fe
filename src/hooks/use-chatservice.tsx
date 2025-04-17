@@ -20,6 +20,7 @@ interface UseChatServiceReturn {
     stopStreaming: () => void;
     setSessionId: (id: number | null) => void;
     sessionId: number | null;
+    setMessages : any;
     sessions: ChatSession[];
     loadSessions: () => Promise<void>;
     createNewSession: () => Promise<number>;
@@ -98,6 +99,7 @@ export const useChatService = (): UseChatServiceReturn => {
 
     // Load all sessions for the current user
     const loadSessions = useCallback(async (): Promise<void> => {
+        
         const accessToken = getAccessToken();
         if (!accessToken) {
             console.error('No access token found. User may need to log in.');
@@ -148,7 +150,7 @@ export const useChatService = (): UseChatServiceReturn => {
             // This prevents double loading
             pendingSessionUpdate.current = data.id;
             setSessionId(data.id);
-            setMessages([]);
+            // setMessages([]);
             return data.id;
         } catch (error) {
             console.error('Error creating new session:', error);
@@ -471,6 +473,7 @@ export const useChatService = (): UseChatServiceReturn => {
         setSessionId,
         sessionId,
         sessions,
+        setMessages,
         loadSessions,
         createNewSession,
         loadSessionMessages,

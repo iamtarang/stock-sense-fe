@@ -15,15 +15,10 @@ import { useChatService } from "../../../hooks/use-chatservice";
 // Define types for categorized sessions
 type CategoryName = 'Today' | 'Yesterday' | 'Past Week' | 'Previous';
 type CategorizedSessions = {
-    // [key in CategoryName]: string[];
     [key in CategoryName]: string[];
 };
 
-interface SidebarProps {
-    onSessionChange: (sessionId: number | null) => void;
-}
-
-const Sidebar = (props: SidebarProps) => {
+const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -36,23 +31,7 @@ const Sidebar = (props: SidebarProps) => {
     const user_email = localStorage.getItem("user_email") || "user@stocksense.io";
 
     // Get chat service data
-    const { sessions, sessionId: currentSessionId, } = useChatService();
-
-    // Track the selected chat session ID
-    const [chatSessionId, setChatSessionId] = useState<number | null>(currentSessionId);
-
-    // Update chatSessionId when currentSessionId changes
-    useEffect(() => {
-        setChatSessionId(currentSessionId);
-    }, [currentSessionId]);
-
-    // Handler for when a chat is clicked
-    const handleChatClicked = (id: number | null) => {
-        console.log("Chat clicked in Sidebar - Session ID:", id);
-        setChatSessionId(id);
-        // Call the onSessionChange prop to notify parent component
-        props.onSessionChange(id);
-    };
+    const { sessions, sessionId: currentSessionId } = useChatService();
 
     // Group sessions by time period
     const categorizedSessions: CategorizedSessions = {
@@ -83,8 +62,6 @@ const Sidebar = (props: SidebarProps) => {
     // Group sessions by category
     sessions.forEach(session => {
         const category = formatDate(session.started_at);
-        // console.log(category, typeof category);
-
         categorizedSessions[category].push(session.started_at);
     });
 
@@ -139,6 +116,11 @@ const Sidebar = (props: SidebarProps) => {
         // Redirect the user to the login page
         navigate("/login", { replace: true });
     }
+
+    const handleNewChat = () => {
+        navigate('/chat');
+    };
+    
 
     // Get user initials for avatar
     const getUserInitials = () => {
@@ -195,25 +177,23 @@ const Sidebar = (props: SidebarProps) => {
                                             name: category,
                                             items: categorizedSessions[category]
                                         }}
-                                        chatSessionId={chatSessionId}
-                                        onChatClicked={handleChatClicked}
+                                        chatSessionId={currentSessionId}
                                     />
                                 ))}
                             </nav>
-                        ) : (
-                            !isMobile && (
-                                <nav className="flex flex-col items-center">
-                                    {(Object.keys(categorizedSessions) as CategoryName[]).map((category, index) => (
-                                        <div key={index} className="p-2 hover:bg-blue-700 rounded cursor-pointer mb-2">
-                                            <span className="sr-only">{category}</span>
-                                            {category === 'Today' && categorizedSessions[category].length === 0 && (
-                                                <Plus size={16} />
-                                            )}
-                                        </div>
-                                    ))}
-                                </nav>
-                            )
-                        )}
+                        ) : !isMobile && (
+                            <div className="flex flex-col items-center mt-4">
+                                <button
+                                    onClick={handleNewChat}
+                                    className="bg-blue-700 hover:bg-blue-600 p-2 rounded-full text-white shadow-md"
+                                    aria-label="Start new chat"
+                                    title="New Chat"
+                                >
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+                        )
+                        }
                     </div>
                 </div>
 

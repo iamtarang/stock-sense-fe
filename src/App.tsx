@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Login from "./pages/login";
 import SignUp from "./pages/sign-up";
-import ChatLayout from "./pages/chat/chat-layout";
+import ChatLayout from "./pages/chat/chat-page";
 import Speech from "./pages/speech";
 import "./App.css";
 import { useCookies } from "react-cookie";
@@ -54,6 +54,12 @@ function App() {
         {/* Add any other protected routes here */}
         <Route
           path="/chat" element={
+            <ProtectedRoute>
+              <ChatLayout />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/chat/:id" element={
             <ProtectedRoute>
               <ChatLayout />
             </ProtectedRoute>
