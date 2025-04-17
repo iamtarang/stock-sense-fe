@@ -76,7 +76,6 @@ const NavItems: React.FC<NavItemsProps> = ({ category, chatSessionId }) => {
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [isRedirected,setIsRedirected] = useState(false);
   // Add state for delete confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<number | null>(null);
