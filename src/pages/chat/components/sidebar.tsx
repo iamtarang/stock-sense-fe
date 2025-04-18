@@ -518,13 +518,12 @@ const Sidebar = () => {
         console.log("Chat deleted successfully");
 
         // If the deleted session was the active one, set sessionId to null
-        if (sessionToDelete === currentSessionId) {
+        // if (sessionToDelete === currentSessionId) {       
           setSessionId(null);
-          navigate('/chat');
-        }
-
+        // }
+        navigate('/chat');
         // Refresh the sessions list
-        await loadSessions();
+         loadSessions();
       } else {
         console.error("Failed to delete chat:", response);
       }
@@ -547,7 +546,7 @@ const Sidebar = () => {
       if (success) {
         console.log("Chat renamed successfully");
         // Refresh the sessions list
-        await loadSessions();
+         loadSessions();
       } else {
         console.error("Failed to rename chat");
       }
