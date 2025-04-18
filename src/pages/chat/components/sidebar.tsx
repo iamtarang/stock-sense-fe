@@ -437,7 +437,6 @@ const Sidebar = ({ activeChatId }: SidebarProps) => {
   // Get chat service data
   const {
     sessions,
-    sessionId: currentSessionId,
     clearMessages,
     loadSessions,
     setSessionId,
