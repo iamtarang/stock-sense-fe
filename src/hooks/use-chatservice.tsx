@@ -26,7 +26,9 @@ interface UseChatServiceReturn {
     createNewSession: () => Promise<number>;
     loadSessionMessages: (sessionId: number | null) => Promise<void>;
     updateSessionTitle: (sessionId: number, title: string) => Promise<void>;
-    clearMessages: () => void; // Add this new function
+    deleteSession: (sessionId: number) => Promise<boolean>;
+    renameSession: (sessionId: number, newTitle: string) => Promise<boolean>;
+    clearMessages: () => void;
 }
 
 interface UserMetaData {
@@ -237,6 +239,78 @@ export const useChatService = (): UseChatServiceReturn => {
             );
         } catch (error) {
             console.error('Error updating session title:', error);
+        }
+    }, [getAccessToken]);
+
+    // New function to delete a session
+    const deleteSession = useCallback(async (sessionId: number): Promise<boolean> => {
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+            console.error('No access token found. User may need to log in.');
+            return false;
+        }
+        
+        try {
+            const response = await fetch(`https://stocksense-backend.onrender.com/api/users/chat-sessions/${sessionId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.status === 200 || response.status === 204) {
+                // Update the sessions list by removing the deleted session
+                setSessions(prev => prev.filter(session => session.id !== sessionId));
+                return true;
+            } else {
+                console.error(`Failed to delete session: ${response.status}`);
+                return false;
+            }
+        } catch (error) {
+            console.error('Error deleting session:', error);
+            return false;
+        }
+    }, [getAccessToken]);
+
+    // New function to rename a session
+    const renameSession = useCallback(async (sessionId: number, newTitle: string): Promise<boolean> => {
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+            console.error('No access token found. User may need to log in.');
+            return false;
+        }
+        
+        try {
+            const response = await fetch(`https://stocksense-backend.onrender.com/api/users/chat-sessions/${sessionId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_title: newTitle
+                })
+            });
+            
+            if (response.status === 200) {
+                const data = await response.json();
+                // Update the sessions list with the new title
+                setSessions(prev => 
+                    prev.map(session => 
+                        session.id === sessionId 
+                            ? { ...session, session_title: data.session_title } 
+                            : session
+                    )
+                );
+                return true;
+            } else {
+                console.error(`Failed to rename session: ${response.status}`);
+                return false;
+            }
+        } catch (error) {
+            console.error('Error renaming session:', error);
+            return false;
         }
     }, [getAccessToken]);
 
@@ -478,6 +552,8 @@ export const useChatService = (): UseChatServiceReturn => {
         createNewSession,
         loadSessionMessages,
         updateSessionTitle,
-        clearMessages // Add this new function
+        deleteSession, // New function
+        renameSession, // New function
+        clearMessages
     };
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ChatInput from "./components/chat-input";
 import ChatBubble from "./components/chat-bubble";
@@ -18,8 +18,9 @@ const ChatLayout = () => {
   const [isBatchLoading, setIsBatchLoading] = useState(false);
   const lastLoadedSessionId = useRef<number | null>(null);
   
-  // Add a ref to track session navigation status
-  const pendingNavigationRef = useRef<boolean>(false);
+  // Navigation management refs
+  const isNewSession = useRef<boolean>(false);
+  const navigationAttempts = useRef<number>(0);
 
   const {
     isStreaming,
@@ -45,26 +46,63 @@ const ChatLayout = () => {
     }
   }, [chatIdParam, hookSessionId, setSessionId]);
 
-  // Listen for session ID changes to handle navigation
+  // Session ID change handler with robust navigation
   useEffect(() => {
-    // Only navigate if we're waiting for a navigation and have a valid session ID
-    if (pendingNavigationRef.current && hookSessionId !== null) {
-      console.log(`Navigating to new session: ${hookSessionId}`);
-      navigate(`/chat/${hookSessionId}`);
-      pendingNavigationRef.current = false;
+    // Handle navigation for new sessions
+    if (isNewSession.current && hookSessionId !== null) {
+      const currentUrl = window.location.pathname;
+      const targetUrl = `/chat/${hookSessionId}`;
+      
+      // Only navigate if we need to
+      if (!currentUrl.includes(`/chat/${hookSessionId}`)) {
+        console.log(`Navigating to new session: ${hookSessionId}`);
+        
+        // Use timeout to ensure state is settled
+        setTimeout(() => {
+          navigate(targetUrl, { replace: true });
+          isNewSession.current = false;
+          navigationAttempts.current = 0;
+        }, 100);
+      } else {
+        isNewSession.current = false;
+        navigationAttempts.current = 0;
+      }
     }
   }, [hookSessionId, navigate]);
   
+  // Additional effect to handle navigation retries if needed
+  useEffect(() => {
+    // If we're waiting for navigation but session ID is still null
+    if (isNewSession.current && hookSessionId === null && navigationAttempts.current < 5) {
+      // Try to check for sessions in case our state is out of sync
+      const checkInterval = setInterval(() => {
+        navigationAttempts.current += 1;
+        console.log(`Checking for session ID (attempt ${navigationAttempts.current})`);
+        
+        loadSessions();
+        
+        // Give up after 5 attempts
+        if (navigationAttempts.current >= 5) {
+          console.log("Navigation attempts exceeded, giving up");
+          clearInterval(checkInterval);
+          isNewSession.current = false;
+        }
+      }, 1000);
+      
+      return () => clearInterval(checkInterval);
+    }
+  }, [hookSessionId, loadSessions]);
+
   // Handle session loading
   useEffect(() => {
     if (hookSessionId !== lastLoadedSessionId.current) {
-      // console.log(`Session changed to: ${hookSessionId}`);
+      console.log(`Session changed to: ${hookSessionId}`);
 
       if (hookSessionId === null) {
         lastLoadedSessionId.current = null;
-        clearMessages()
+        clearMessages();
       } else {
-        // console.log(`Loading data for session: ${hookSessionId}`);
+        console.log(`Loading data for session: ${hookSessionId}`);
 
         // Load the session messages (if needed)
         if (!isBatchLoading) {
@@ -99,17 +137,36 @@ const ChatLayout = () => {
   const handleSendMessage = useCallback(
     async (text: string) => {
       if (text.trim() && !loading && !isStreaming) {
-        // For new sessions, mark that we're waiting for navigation
+        // Flag for new session creation
         if (!hookSessionId) {
-          pendingNavigationRef.current = true;
+          console.log("Starting new session, will navigate when ID is received");
+          isNewSession.current = true;
+          navigationAttempts.current = 0;
         }
         
         // Send the message - session handling will be done by the stream processing
         await sendMessage(text);
+        
+        // Additional check to ensure navigation success
+        if (isNewSession.current) {
+          // Monitor sessions for changes in case the stream event doesn't trigger it
+          setTimeout(() => {
+            loadSessions();
+          }, 1000);
+        }
       }
     },
-    [loading, isStreaming, sendMessage, hookSessionId]
+    [loading, isStreaming, sendMessage, hookSessionId, loadSessions]
   );
+
+  // Dedicated function to watch for session changes in messages
+  useEffect(() => {
+    // If we're waiting for a new session and have messages
+    if (isNewSession.current && hookSessionId === null && messages.length > 0) {
+      // After a successful message send, check for sessions again
+      loadSessions();
+    }
+  }, [messages, hookSessionId, loadSessions]);
 
   // Get current session title
   const currentSessionTitle =
