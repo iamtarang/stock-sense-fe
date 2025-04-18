@@ -38,7 +38,9 @@ const ChatLayout = () => {
 
   // Handle URL parameter changes
   useEffect(() => {
+    // console.log(`Current session IDs - URL: ${chatIdParam}, Hook: ${hookSessionId}`);
     const parsedId = chatIdParam ? parseInt(chatIdParam, 10) : null;
+    
 
     if (parsedId !== hookSessionId) {
       console.log(`URL parameter changed to: ${parsedId}`);
@@ -177,7 +179,7 @@ const ChatLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar />
+      <Sidebar activeChatId={hookSessionId} />
       <main className="flex-1 overflow-hidden">
         <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
           {/* Header */}

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   MessageSquare,
   MoreVertical,
@@ -9,12 +9,12 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  LogOut
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useCookies } from 'react-cookie';
-import { useChatService } from '../../../hooks/use-chatservice';
-import api from '../../../utils/api';
+  LogOut,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
+import { useChatService } from "../../../hooks/use-chatservice";
+import api from "../../../utils/api";
 
 interface ChatSession {
   id: number;
@@ -24,8 +24,12 @@ interface ChatSession {
   session_title: string;
 }
 
+interface SidebarProps {
+  activeChatId?: number | null;
+}
+
 // Category types
-type CategoryName = 'Today' | 'Yesterday' | 'Past Week' | 'Previous';
+type CategoryName = "Today" | "Yesterday" | "Past Week" | "Previous";
 type CategorizedSessions = {
   [key in CategoryName]: string[];
 };
@@ -36,7 +40,7 @@ const DeleteConfirmationModal = ({
   isOpen,
   onClose,
   onConfirm,
-  sessionTitle
+  sessionTitle,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -50,15 +54,13 @@ const DeleteConfirmationModal = ({
       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-white">Delete Chat</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={20} />
           </button>
         </div>
         <p className="text-gray-300 mb-4">
-          Are you sure you want to delete "{sessionTitle || 'New Chat'}"? This action cannot be undone.
+          Are you sure you want to delete "{sessionTitle || "New Chat"}"? This
+          action cannot be undone.
         </p>
         <div className="flex justify-end space-x-3">
           <button
@@ -84,7 +86,7 @@ const RenameModal = ({
   isOpen,
   onClose,
   onConfirm,
-  sessionTitle
+  sessionTitle,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -92,18 +94,18 @@ const RenameModal = ({
   sessionTitle: string;
 }) => {
   const [newTitle, setNewTitle] = useState(sessionTitle);
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTitle.trim()) {
       onConfirm(newTitle);
     }
   };
-  
+
   useEffect(() => {
     setNewTitle(sessionTitle);
   }, [sessionTitle, isOpen]);
-  
+
   if (!isOpen) return null;
 
   return (
@@ -111,16 +113,16 @@ const RenameModal = ({
       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-white">Rename Chat</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={20} />
           </button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="chatTitle" className="block text-sm font-medium text-gray-300 mb-2">
+            <label
+              htmlFor="chatTitle"
+              className="block text-sm font-medium text-gray-300 mb-2"
+            >
               Chat Title
             </label>
             <input
@@ -156,13 +158,13 @@ const RenameModal = ({
 };
 
 // NavItems component (now with modal state and handlers passed from parent)
-const NavItems = ({ 
-  category, 
+const NavItems = ({
+  category,
   chatSessionId,
   handleNewChat,
   onDeleteSession,
-  onRenameSession
-}: { 
+  onRenameSession,
+}: {
   category: {
     name: string;
     items: unknown[];
@@ -184,12 +186,12 @@ const NavItems = ({
   useEffect(() => {
     // Initial load
     loadSessions();
-    
+
     // Set up interval to refresh sessions (every 3 seconds)
     const intervalId = setInterval(() => {
       loadSessions();
     }, 3000);
-    
+
     // Clean up interval
     return () => clearInterval(intervalId);
   }, [loadSessions]);
@@ -200,8 +202,8 @@ const NavItems = ({
       // Check if click is outside both the menu and the button
       if (
         openMenu !== null &&
-        (!menuRef.current?.contains(event.target as Node) &&
-          !buttonRef.current?.contains(event.target as Node))
+        !menuRef.current?.contains(event.target as Node) &&
+        !buttonRef.current?.contains(event.target as Node)
       ) {
         setOpenMenu(null);
       }
@@ -224,29 +226,33 @@ const NavItems = ({
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Today';
+      return "Today";
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return "Yesterday";
     } else if (date >= new Date(today.setDate(today.getDate() - 7))) {
-      return 'Past Week';
+      return "Past Week";
     } else {
-      return 'Previous';
+      return "Previous";
     }
   };
 
   const getSessionsByCategory = (categoryName: string): ChatSession[] => {
     // Filter sessions by category name
-    const filteredSessions = sessions.filter(session => formatDate(session.started_at) === categoryName);
+    const filteredSessions = sessions.filter(
+      (session) => formatDate(session.started_at) === categoryName
+    );
 
     // Sort sessions by started_at date (newest first)
-    return filteredSessions.sort((a, b) =>
-      new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
+    return filteredSessions.sort(
+      (a, b) =>
+        new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
     );
   };
 
   const categorySessions = getSessionsByCategory(category.name);
 
   const handleSessionClick = (sessionID: number) => {
+    console.log(`Selecting session: ${sessionID}`);
     setSessionId(sessionID);
     navigate(`/chat/${sessionID}`);
   };
@@ -258,10 +264,10 @@ const NavItems = ({
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Call the parent handler
     onDeleteSession(session.id, session.session_title);
-    
+
     // Close the dropdown menu
     setOpenMenu(null);
   };
@@ -273,10 +279,10 @@ const NavItems = ({
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Call the parent handler
-    onRenameSession(session.id, session.session_title || 'New Chat');
-    
+    onRenameSession(session.id, session.session_title || "New Chat");
+
     // Close the dropdown menu
     setOpenMenu(null);
   };
@@ -291,13 +297,13 @@ const NavItems = ({
     }
   };
 
-  if (categorySessions.length === 0 && category.name !== 'Today') {
+  if (categorySessions.length === 0 && category.name !== "Today") {
     return null;
   }
 
   return (
     <div className="mb-4">
-      {category.name === 'Today' && (
+      {category.name === "Today" && (
         <button
           onClick={handleNewChat}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mb-3 flex items-center justify-center"
@@ -319,15 +325,46 @@ const NavItems = ({
                 onMouseEnter={() => setHoveredSession(session.id)}
                 onMouseLeave={() => setHoveredSession(null)}
               >
-                <div className={`flex items-center w-full rounded-lg ${chatSessionId === session.id ? 'bg-blue-700 text-white' : 'hover:bg-blue-600/50 text-gray-100'
-                  }`}>
+                <div
+                  className={`flex items-center w-full rounded-lg ${
+                    chatSessionId === session.id
+                      ? "bg-blue-700 text-white"
+                      : "hover:bg-blue-600/50 text-gray-100"
+                  }`}
+                >
                   {/* Main session area with fixed layout */}
                   <div
                     onClick={() => handleSessionClick(session.id)}
                     className="flex items-center flex-1 py-2 px-3 cursor-pointer min-w-0 overflow-hidden"
                   >
-                    <MessageSquare size={16} className="mr-2 flex-shrink-0 text-gray-300" />
-                    <span className="truncate">{session.session_title || 'New Chat'}</span>
+                    <div className="flex items-center flex-shrink-0 mr-2">
+                      {chatSessionId === session.id ? (
+                        // Green dot indicator for active chat
+                        <div className="relative">
+                          <MessageSquare
+                            size={16}
+                            className={`${
+                              chatSessionId === session.id
+                                ? "text-white"
+                                : "text-gray-300"
+                            }`}
+                          />
+                          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border border-blue-700"></div>
+                        </div>
+                      ) : (
+                        <MessageSquare
+                          size={16}
+                          className={`${
+                            chatSessionId === session.id
+                              ? "text-white"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      )}
+                    </div>
+                    <span className="truncate">
+                      {session.session_title || "New Chat"}
+                    </span>
                   </div>
 
                   {/* Options button with fixed width to prevent shifting */}
@@ -350,19 +387,19 @@ const NavItems = ({
                     ref={menuRef}
                     className="absolute right-2 top-full mt-1 w-36 bg-white text-gray-900 rounded shadow-lg z-10 border border-gray-300"
                   >
-                    <button 
+                    <button
                       onClick={(e) => handleRenameChat(e, session)}
                       className="w-full flex items-center px-4 py-2 hover:bg-blue-200 cursor-pointer"
                     >
                       <Edit size={16} className="mr-2 text-blue-600" />
-                      Rename Chat
+                      Rename
                     </button>
                     <button
                       onClick={(e) => handleDeleteChat(e, session)}
                       className="w-full flex items-center px-4 py-2 hover:bg-red-100 hover:text-red-600 cursor-pointer"
                     >
                       <Trash2 size={16} className="mr-2 text-red-500" />
-                      Delete Chat
+                      Delete
                     </button>
                   </div>
                 )}
@@ -376,7 +413,7 @@ const NavItems = ({
 };
 
 // Main Sidebar component - now owns modal state
-const Sidebar = () => {
+const Sidebar = ({ activeChatId }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -384,13 +421,13 @@ const Sidebar = () => {
   // Modal state - moved here from NavItems
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<number | null>(null);
-  const [sessionTitleToDelete, setSessionTitleToDelete] = useState('');
-  
+  const [sessionTitleToDelete, setSessionTitleToDelete] = useState("");
+
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [sessionToRename, setSessionToRename] = useState<number | null>(null);
-  const [sessionTitleToRename, setSessionTitleToRename] = useState('');
+  const [sessionTitleToRename, setSessionTitleToRename] = useState("");
 
-  const [, , removeCookie] = useCookies(['access_token']);
+  const [, , removeCookie] = useCookies(["access_token"]);
   const navigate = useNavigate();
 
   // Get username from localStorage
@@ -398,14 +435,21 @@ const Sidebar = () => {
   const user_email = localStorage.getItem("user_email") || "user@stocksense.io";
 
   // Get chat service data
-  const { sessions, sessionId: currentSessionId, clearMessages, loadSessions, setSessionId, renameSession } = useChatService();
+  const {
+    sessions,
+    sessionId: currentSessionId,
+    clearMessages,
+    loadSessions,
+    setSessionId,
+    renameSession,
+  } = useChatService();
 
   // Group sessions by time period
   const categorizedSessions: CategorizedSessions = {
-    'Today': [],
-    'Yesterday': [],
-    'Past Week': [],
-    'Previous': []
+    Today: [],
+    Yesterday: [],
+    "Past Week": [],
+    Previous: [],
   };
 
   // Function to format dates for grouping
@@ -416,18 +460,18 @@ const Sidebar = () => {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Today';
+      return "Today";
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return "Yesterday";
     } else if (date >= new Date(today.setDate(today.getDate() - 7))) {
-      return 'Past Week';
+      return "Past Week";
     } else {
-      return 'Previous';
+      return "Previous";
     }
   };
 
   // Group sessions by category
-  sessions.forEach(session => {
+  sessions.forEach((session) => {
     const category = formatDate(session.started_at);
     categorizedSessions[category].push(session.started_at);
   });
@@ -454,14 +498,14 @@ const Sidebar = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (isUserMenuOpen && !target.closest('.user-dropdown')) {
+      if (isUserMenuOpen && !target.closest(".user-dropdown")) {
         setIsUserMenuOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isUserMenuOpen]);
 
@@ -477,53 +521,60 @@ const Sidebar = () => {
     localStorage.removeItem("user_email");
 
     // Remove the access_token cookie
-    removeCookie('access_token', { path: '/' });
-    removeCookie('access_token', { path: '/chat' });
+    removeCookie("access_token", { path: "/" });
+    removeCookie("access_token", { path: "/chat" });
 
     // Redirect the user to the login page
     navigate("/login", { replace: true });
-  }
+  };
 
   const handleNewChat = useCallback(() => {
     clearMessages();
-    navigate('/chat');
+    navigate("/chat");
   }, [clearMessages, navigate]);
 
   // Get user initials for avatar
   const getUserInitials = () => {
     if (!username || username === "User") return "U";
-    return username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    return username
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
   };
-  
+
   // New handlers for modals - moved from NavItems
   const handleDeleteSessionClick = (sessionId: number, title: string) => {
     setSessionToDelete(sessionId);
     setSessionTitleToDelete(title);
     setShowDeleteModal(true);
   };
-  
+
   const handleRenameSessionClick = (sessionId: number, title: string) => {
     setSessionToRename(sessionId);
     setSessionTitleToRename(title);
     setShowRenameModal(true);
   };
-  
+
   // Function to perform the actual deletion
   const confirmDeleteChat = async () => {
     if (!sessionToDelete) return;
 
     try {
-      const response = await api.delete(`/api/users/chat-sessions/${sessionToDelete}/`);
+      const response = await api.delete(
+        `/api/users/chat-sessions/${sessionToDelete}/`
+      );
       if (response.status === 200 || response.status === 204) {
         console.log("Chat deleted successfully");
 
         // If the deleted session was the active one, set sessionId to null
-        // if (sessionToDelete === currentSessionId) {       
+        if (sessionToDelete === activeChatId) {
           setSessionId(null);
-        // }
-        navigate('/chat');
+        }
+        navigate("/chat");
         // Refresh the sessions list
-         loadSessions();
+        loadSessions();
       } else {
         console.error("Failed to delete chat:", response);
       }
@@ -533,7 +584,7 @@ const Sidebar = () => {
       // Close the modal and reset state
       setShowDeleteModal(false);
       setSessionToDelete(null);
-      setSessionTitleToDelete('');
+      setSessionTitleToDelete("");
     }
   };
 
@@ -546,7 +597,7 @@ const Sidebar = () => {
       if (success) {
         console.log("Chat renamed successfully");
         // Refresh the sessions list
-         loadSessions();
+        loadSessions();
       } else {
         console.error("Failed to rename chat");
       }
@@ -556,7 +607,7 @@ const Sidebar = () => {
       // Close the modal and reset state
       setShowRenameModal(false);
       setSessionToRename(null);
-      setSessionTitleToRename('');
+      setSessionTitleToRename("");
     }
   };
 
@@ -591,65 +642,94 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div
         className={`fixed md:relative z-40 transition-all duration-200 ease-in-out
-            ${isOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-64 md:w-16'} 
+            ${
+              isOpen
+                ? "translate-x-0 w-64"
+                : "-translate-x-full md:translate-x-0 w-64 md:w-16"
+            } 
             bg-blue-800 text-white h-full flex flex-col`}
       >
         {/* Header */}
         <div className="p-4 border-b border-blue-700 flex justify-between items-center">
-          <h1 className={`text-xl font-bold transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
+          <h1
+            className={`text-xl font-bold transition-opacity duration-200 ease-in-out ${
+              isOpen ? "opacity-100" : "opacity-0 md:hidden"
+            }`}
+          >
             StockSense
           </h1>
 
           {isMobile && isOpen && (
-            <button onClick={toggleSidebar} className="text-white" aria-label="Close menu">
+            <button
+              onClick={toggleSidebar}
+              className="text-white"
+              aria-label="Close menu"
+            >
               <X size={24} />
             </button>
           )}
         </div>
 
         {/* Navigation - scrollbar hidden but still scrollable */}
-        <div className={`flex-1 py-4 transition-all duration-300 ease-in-out ${isOpen ? 'px-2' : 'px-0'} overflow-y-auto scrollbar-hide`}
+        <div
+          className={`flex-1 py-4 transition-all duration-300 ease-in-out ${
+            isOpen ? "px-2" : "px-0"
+          } overflow-y-auto scrollbar-hide`}
           style={{
-            msOverflowStyle: 'none',  /* IE and Edge */
-            scrollbarWidth: 'none',   /* Firefox */
-          }}>
-
-          <div className={`transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
+            msOverflowStyle: "none" /* IE and Edge */,
+            scrollbarWidth: "none" /* Firefox */,
+          }}
+        >
+          <div
+            className={`transition-opacity duration-200 ease-in-out ${
+              isOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+            }`}
+          >
             {isOpen ? (
               <nav>
-                {(Object.keys(categorizedSessions) as CategoryName[]).map((category) => (
-                  <NavItems
-                    key={category}
-                    category={{
-                      name: category,
-                      items: categorizedSessions[category]
-                    }}
-                    chatSessionId={currentSessionId}
-                    handleNewChat={handleNewChat}
-                    onDeleteSession={handleDeleteSessionClick}
-                    onRenameSession={handleRenameSessionClick}
-                  />
-                ))}
+                {(Object.keys(categorizedSessions) as CategoryName[]).map(
+                  (category) => (
+                    <NavItems
+                      key={category}
+                      category={{
+                        name: category,
+                        items: categorizedSessions[category],
+                      }}
+                      chatSessionId={activeChatId}
+                      handleNewChat={handleNewChat}
+                      onDeleteSession={handleDeleteSessionClick}
+                      onRenameSession={handleRenameSessionClick}
+                    />
+                  )
+                )}
               </nav>
-            ) : !isMobile && (
-              <div className="flex flex-col items-center mt-4">
-                <button
-                  onClick={handleNewChat}
-                  className="bg-blue-700 hover:bg-blue-600 p-2 rounded-full text-white shadow-md"
-                  aria-label="Start new chat"
-                  title="New Chat"
-                >
-                  <Plus size={20} />
-                </button>
-              </div>
+            ) : (
+              !isMobile && (
+                <div className="flex flex-col items-center mt-4">
+                  <button
+                    onClick={handleNewChat}
+                    className="bg-blue-700 hover:bg-blue-600 p-2 rounded-full text-white shadow-md"
+                    aria-label="Start new chat"
+                    title="New Chat"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
 
         {/* User section */}
-        <div className={`p-4 border-t border-blue-700 flex transition-all duration-300 ease-in-out ${isOpen ? 'justify-between' : 'justify-center'} items-center relative user-dropdown`}>
+        <div
+          className={`p-4 border-t border-blue-700 flex transition-all duration-300 ease-in-out ${
+            isOpen ? "justify-between" : "justify-center"
+          } items-center relative user-dropdown`}
+        >
           <div
-            className={`flex items-center transition-opacity duration-200 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden'} cursor-pointer`}
+            className={`flex items-center transition-opacity duration-200 ease-in-out ${
+              isOpen ? "opacity-100" : "opacity-0 md:hidden"
+            } cursor-pointer`}
             onClick={isOpen ? toggleUserMenu : undefined}
           >
             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
@@ -667,7 +747,10 @@ const Sidebar = () => {
                 <p className="text-sm font-medium">Signed in as</p>
                 <p className="text-sm font-bold">{user_email}</p>
               </div>
-              <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600">
+              <button
+                onClick={logout}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600"
+              >
                 <LogOut size={16} className="mr-2" />
                 <span>Logout</span>
               </button>
@@ -678,7 +761,9 @@ const Sidebar = () => {
           {!isMobile && (
             <button
               onClick={toggleSidebar}
-              className={`${isOpen ? 'ml-2' : 'mx-auto'} bg-blue-700 hover:bg-blue-600 rounded-full p-1 transition-all duration-300 ease-in-out`}
+              className={`${
+                isOpen ? "ml-2" : "mx-auto"
+              } bg-blue-700 hover:bg-blue-600 rounded-full p-1 transition-all duration-300 ease-in-out`}
               aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
