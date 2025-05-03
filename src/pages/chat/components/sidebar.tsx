@@ -214,8 +214,8 @@ const NavItems: React.FC<NavItemsProps> = ({
   const [hoveredSession, setHoveredSession] = useState<number | null>(null);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  // Store refs in a ref object
-  const buttonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
+  // Use a map to store refs for each button if needed, or assign conditionally
+  const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -275,15 +275,6 @@ const NavItems: React.FC<NavItemsProps> = ({
     e.stopPropagation();
     onRenameSession(session.id, session.session_title || "New Chat");
     setOpenMenu(null); // Close menu after action
-  };
-
-  // Function to set a ref for a button
-  const setButtonRef = (sessionId: number) => (element: HTMLButtonElement | null) => {
-    if (element) {
-      buttonRefs.current.set(sessionId, element);
-    } else {
-      buttonRefs.current.delete(sessionId);
-    }
   };
 
   return (
@@ -347,7 +338,7 @@ const NavItems: React.FC<NavItemsProps> = ({
                   <div className="flex-shrink-0 w-8">
                     {(hoveredSession === session.id || openMenu === session.id) && (
                       <button
-                        ref={setButtonRef(session.id)}
+                        ref={(el) => buttonRefs.current.set(session.id, el)} // Assign ref using map
                         onClick={(e) => handleDotClick(e, session.id)}
                         className="p-1 mx-auto rounded-full hover:bg-blue-400/50 cursor-pointer"
                         aria-haspopup="true"
